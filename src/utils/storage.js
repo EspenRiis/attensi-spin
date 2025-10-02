@@ -112,13 +112,13 @@ export const hasStoredData = async (sessionId = null) => {
       return false;
     }
 
-    const { data, error } = await supabase
+    const { data, error, count } = await supabase
       .from('participants')
       .select('id', { count: 'exact', head: true })
       .eq('session_id', session);
 
     if (error) throw error;
-    return data && data.length > 0;
+    return count > 0;
   } catch (error) {
     console.error('Error checking stored data:', error);
     return false;
