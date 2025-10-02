@@ -1,0 +1,38 @@
+.qr-code-container {
+  background: rgba(27, 40, 56, 0.6);
+  border: 2px solid var(--color-cyan);
+  border-radius: 15px;
+  padding: 25px;
+  text-align: center;
+}
+
+.qr-title {
+  font-size: 20px;
+  font-weight: 700;
+  color: var(--color-cyan);
+  margin-bottom: 20px;
+  text-transform: uppercase;
+  letter-spacing: 1px;
+}
+
+.qr-code-wrapper {
+  background: white;
+  padding: 15px;
+  border-radius: 10px;
+  display: inline-block;
+  margin-bottom: 15px;
+  box-shadow: 0 10px 30px rgba(0, 217, 255, 0.3);
+}
+
+.qr-hint {
+  font-size: 14px;
+  color: var(--color-light-gray);
+  margin-top: 10px;
+}
+
+@media (max-width: 768px) {
+  .qr-code-wrapper svg {
+    width: 150px !important;
+    height: 150px !important;
+  }
+}

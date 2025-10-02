@@ -1,0 +1,60 @@
+.wheel-container {
+  position: relative;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  margin: 20px auto;
+}
+
+.wheel-canvas {
+  max-width: 100%;
+  height: auto;
+  filter: drop-shadow(0 10px 30px rgba(0, 217, 255, 0.3));
+}
+
+.wheel-pointer {
+  position: absolute;
+  top: -15px;
+  left: 50%;
+  transform: translateX(-50%);
+  font-size: 40px;
+  color: var(--cyan-bright);
+  filter: drop-shadow(0 5px 15px rgba(0, 217, 255, 0.8));
+  z-index: 10;
+  animation: bounce 1s ease-in-out infinite;
+  text-shadow: 0 0 20px rgba(0, 217, 255, 1),
+               0 0 40px rgba(0, 217, 255, 0.8);
+  pointer-events: none; /* Prevents clicking issues */
+}
+
+@keyframes bounce {
+  0%, 100% {
+    transform: translateX(-50%) translateY(0);
+  }
+  50% {
+    transform: translateX(-50%) translateY(-10px);
+  }
+}
+
+@media (max-width: 768px) {
+  .wheel-canvas {
+    width: 350px;
+    height: 350px;
+  }
+
+  .wheel-pointer {
+    font-size: 30px;
+    top: -10px;
+  }
+}
+
+@media (max-width: 480px) {
+  .wheel-canvas {
+    width: 280px;
+    height: 280px;
+  }
+
+  .wheel-pointer {
+    font-size: 25px;
+  }
+}

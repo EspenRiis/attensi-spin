@@ -1,0 +1,75 @@
+.winner-history {
+  background: rgba(27, 40, 56, 0.6);
+  border: 2px solid var(--color-neon-green);
+  border-radius: 15px;
+  padding: 20px;
+  margin-top: 20px;
+}
+
+.history-header {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  margin-bottom: 20px;
+  padding-bottom: 15px;
+  border-bottom: 2px solid var(--color-neon-green);
+}
+
+.history-header h3 {
+  font-size: 20px;
+  font-weight: 700;
+  color: var(--color-neon-green);
+}
+
+.clear-history-btn {
+  background: transparent;
+  border: 1px solid var(--color-neon-green);
+  color: var(--color-neon-green);
+  padding: 8px 16px;
+  border-radius: 8px;
+  font-size: 14px;
+  font-weight: 600;
+  cursor: pointer;
+  transition: all 0.3s ease;
+  font-family: 'Inter', sans-serif;
+}
+
+.clear-history-btn:hover {
+  background: rgba(0, 255, 136, 0.1);
+  transform: translateY(-2px);
+}
+
+.history-items {
+  display: flex;
+  flex-direction: column;
+  gap: 10px;
+}
+
+.history-item {
+  display: flex;
+  align-items: center;
+  gap: 15px;
+  padding: 12px 15px;
+  background: rgba(0, 255, 136, 0.05);
+  border: 1px solid rgba(0, 255, 136, 0.2);
+  border-radius: 8px;
+  transition: all 0.3s ease;
+}
+
+.history-item:hover {
+  background: rgba(0, 255, 136, 0.1);
+  transform: translateX(5px);
+}
+
+.history-rank {
+  font-size: 18px;
+  font-weight: 700;
+  color: var(--color-neon-green);
+  min-width: 40px;
+}
+
+.history-name {
+  font-size: 16px;
+  font-weight: 500;
+  color: var(--color-white);
+}
