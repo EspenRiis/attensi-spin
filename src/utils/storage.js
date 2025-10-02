@@ -1,4 +1,5 @@
 import { supabase } from '../lib/supabase';
+import { getCurrentSessionId } from './session';
 
 const WINNERS_KEY = 'attensi-spin-winners';
 
@@ -13,12 +14,18 @@ export const saveNames = async (names) => {
   }
 };
 
-// Add a single name to Supabase
-export const addName = async (name) => {
+// Add a single name to Supabase with session ID
+export const addName = async (name, sessionId = null) => {
   try {
+    // Use provided sessionId or get current session
+    const session = sessionId || getCurrentSessionId();
+    if (!session) {
+      throw new Error('No session ID available');
+    }
+
     const { data, error } = await supabase
       .from('participants')
-      .insert([{ name: name.trim() }])
+      .insert([{ name: name.trim(), session_id: session }])
       .select();
 
     if (error) throw error;
@@ -29,12 +36,18 @@ export const addName = async (name) => {
   }
 };
 
-// Load all participant names from Supabase
-export const loadNames = async () => {
+// Load all participant names from Supabase for current session
+export const loadNames = async (sessionId = null) => {
   try {
+    const session = sessionId || getCurrentSessionId();
+    if (!session) {
+      return [];
+    }
+
     const { data, error } = await supabase
       .from('participants')
       .select('name')
+      .eq('session_id', session)
       .order('created_at', { ascending: true });
 
     if (error) throw error;
@@ -45,13 +58,19 @@ export const loadNames = async () => {
   }
 };
 
-// Remove a specific name from Supabase
-export const removeName = async (name) => {
+// Remove a specific name from Supabase for current session
+export const removeName = async (name, sessionId = null) => {
   try {
+    const session = sessionId || getCurrentSessionId();
+    if (!session) {
+      throw new Error('No session ID available');
+    }
+
     const { error } = await supabase
       .from('participants')
       .delete()
-      .eq('name', name);
+      .eq('name', name)
+      .eq('session_id', session);
 
     if (error) throw error;
     return { success: true };
@@ -61,13 +80,18 @@ export const removeName = async (name) => {
   }
 };
 
-// Clear all participant names from Supabase
-export const clearNames = async () => {
+// Clear all participant names from Supabase for current session
+export const clearNames = async (sessionId = null) => {
   try {
+    const session = sessionId || getCurrentSessionId();
+    if (!session) {
+      throw new Error('No session ID available');
+    }
+
     const { error } = await supabase
       .from('participants')
       .delete()
-      .neq('id', 0); // Delete all rows
+      .eq('session_id', session);
 
     if (error) throw error;
 
@@ -80,12 +104,18 @@ export const clearNames = async () => {
   }
 };
 
-// Check if there's any data in Supabase
-export const hasStoredData = async () => {
+// Check if there's any data in Supabase for current session
+export const hasStoredData = async (sessionId = null) => {
   try {
+    const session = sessionId || getCurrentSessionId();
+    if (!session) {
+      return false;
+    }
+
     const { data, error } = await supabase
       .from('participants')
-      .select('id', { count: 'exact', head: true });
+      .select('id', { count: 'exact', head: true })
+      .eq('session_id', session);
 
     if (error) throw error;
     return data && data.length > 0;

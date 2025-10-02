@@ -6,6 +6,7 @@ import QRCodePanel from './QRCodePanel';
 import WelcomeModal from './WelcomeModal';
 import WinnerModal from './WinnerModal';
 import { addName, loadNames, clearNames, removeName, saveWinners, loadWinners, hasStoredData } from '../utils/storage';
+import { hasSession, createNewSession, getCurrentSessionId, clearSession } from '../utils/session';
 import { supabase } from '../lib/supabase';
 import './WheelPage.css';
 
@@ -21,55 +22,84 @@ const WheelPage = () => {
   const [clearWinner, setClearWinner] = useState(false);
 
   useEffect(() => {
-    // Load initial data from Supabase
-    const loadInitialData = async () => {
-      const namesFromDB = await loadNames();
-      setNames(namesFromDB);
-
-      const savedWinners = loadWinners();
-      setWinners(savedWinners);
-    };
-
-    loadInitialData();
-
-    // Set up real-time subscription for live sync across devices
-    const channel = supabase
-      .channel('participants-changes')
-      .on(
-        'postgres_changes',
-        {
-          event: '*', // Listen to all events (INSERT, UPDATE, DELETE)
-          schema: 'public',
-          table: 'participants'
-        },
-        async (payload) => {
-          console.log('Real-time update:', payload);
-          // Reload all names when any change occurs
-          const updatedNames = await loadNames();
-          setNames(updatedNames);
+    // Check if user has an existing session with data
+    const initializeSession = async () => {
+      if (hasSession()) {
+        // Check if there's data in this session
+        const hasData = await hasStoredData();
+        if (hasData) {
+          // Show modal to continue or start fresh
+          setShowWelcomeModal(true);
+        } else {
+          // Has session but no data, just load it
+          await loadInitialData();
         }
-      )
-      .subscribe();
-
-    // Cleanup subscription on unmount
-    return () => {
-      supabase.removeChannel(channel);
+      } else {
+        // No session, create a new one
+        createNewSession();
+        await loadInitialData();
+      }
     };
+
+    initializeSession();
   }, []);
 
-  const handleContinue = () => {
-    const savedNames = loadNames();
+  const loadInitialData = async () => {
+    const namesFromDB = await loadNames();
+    setNames(namesFromDB);
+
     const savedWinners = loadWinners();
-    setNames(savedNames);
     setWinners(savedWinners);
+
+    // Set up real-time subscription for live sync across devices
+    const sessionId = getCurrentSessionId();
+    if (sessionId) {
+      const channel = supabase
+        .channel('participants-changes')
+        .on(
+          'postgres_changes',
+          {
+            event: '*', // Listen to all events (INSERT, UPDATE, DELETE)
+            schema: 'public',
+            table: 'participants',
+            filter: `session_id=eq.${sessionId}`
+          },
+          async (payload) => {
+            console.log('Real-time update:', payload);
+            // Reload all names when any change occurs
+            const updatedNames = await loadNames();
+            setNames(updatedNames);
+          }
+        )
+        .subscribe();
+
+      // Cleanup subscription on unmount
+      return () => {
+        supabase.removeChannel(channel);
+      };
+    }
+  };
+
+  const handleContinue = async () => {
     setShowWelcomeModal(false);
+    await loadInitialData();
   };
 
   const handleStartFresh = async () => {
+    // Clear the old session data
     await clearNames();
+    clearSession();
+
+    // Create new session
+    createNewSession();
+
+    // Reset state
     setNames([]);
     setWinners([]);
     setShowWelcomeModal(false);
+
+    // Load new session
+    await loadInitialData();
   };
 
   const showToastMessage = (message) => {

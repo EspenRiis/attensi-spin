@@ -1,6 +1,6 @@
-import { useState } from 'react';
+import { useState, useEffect } from 'react';
 import { motion } from 'framer-motion';
-import { useNavigate } from 'react-router-dom';
+import { useNavigate, useSearchParams } from 'react-router-dom';
 import { addName } from '../utils/storage';
 import './AddNamePage.css';
 
@@ -8,14 +8,31 @@ const AddNamePage = () => {
   const [name, setName] = useState('');
   const [submitted, setSubmitted] = useState(false);
   const [error, setError] = useState('');
+  const [sessionId, setSessionId] = useState(null);
   const navigate = useNavigate();
+  const [searchParams] = useSearchParams();
+
+  useEffect(() => {
+    // Get session ID from URL
+    const session = searchParams.get('session');
+    if (session) {
+      setSessionId(session);
+    } else {
+      setError('Invalid session. Please scan the QR code again.');
+    }
+  }, [searchParams]);
 
   const handleSubmit = async (e) => {
     e.preventDefault();
 
+    if (!sessionId) {
+      setError('Invalid session. Please scan the QR code again.');
+      return;
+    }
+
     if (name.trim()) {
       setError('');
-      const result = await addName(name.trim());
+      const result = await addName(name.trim(), sessionId);
 
       if (result.success) {
         setSubmitted(true);

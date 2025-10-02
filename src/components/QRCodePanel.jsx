@@ -1,12 +1,14 @@
 import { QRCodeSVG } from 'qrcode.react';
 import { motion } from 'framer-motion';
+import { getCurrentSessionId } from '../utils/session';
 import './QRCodePanel.css';
 
 const QRCodePanel = () => {
   // Use the actual URL the page was loaded from
   // This will be localhost when accessed via localhost, or the IP when accessed via IP
   const currentUrl = window.location.origin;
-  const addNameUrl = `${currentUrl}/add-name`;
+  const sessionId = getCurrentSessionId();
+  const addNameUrl = `${currentUrl}/add-name?session=${sessionId}`;
 
   return (
     <motion.div
