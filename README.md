@@ -2,6 +2,8 @@
 
 A fully-featured, gamified wheel of names application built with React, featuring the Attensi brand identity.
 
+🚀 **Live Demo:** https://attensi-spin.vercel.app
+
 ## 🎯 Features
 
 ### Core Functionality
