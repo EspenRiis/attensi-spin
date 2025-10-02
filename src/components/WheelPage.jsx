@@ -24,26 +24,19 @@ const WheelPage = () => {
   useEffect(() => {
     // Check if user has an existing session with data
     const initializeSession = async () => {
-      console.log('Initializing session...');
-      console.log('Has session?', hasSession());
-
       if (hasSession()) {
         // Check if there's data in this session
         const hasData = await hasStoredData();
-        console.log('Has stored data?', hasData);
 
         if (hasData) {
           // Show modal to continue or start fresh - DON'T load data yet
-          console.log('Setting showWelcomeModal to true');
           setShowWelcomeModal(true);
         } else {
           // Has session but no data, just load it
-          console.log('Loading initial data (no stored data)');
           await loadInitialData();
         }
       } else {
         // No session, create a new one
-        console.log('Creating new session');
         createNewSession();
         await loadInitialData();
       }
@@ -52,40 +45,42 @@ const WheelPage = () => {
     initializeSession();
   }, []);
 
+  // Separate effect for real-time subscription
+  useEffect(() => {
+    const sessionId = getCurrentSessionId();
+    if (!sessionId) return;
+
+    const channel = supabase
+      .channel('participants-changes')
+      .on(
+        'postgres_changes',
+        {
+          event: '*', // Listen to all events (INSERT, UPDATE, DELETE)
+          schema: 'public',
+          table: 'participants',
+          filter: `session_id=eq.${sessionId}`
+        },
+        async (payload) => {
+          console.log('Real-time update:', payload);
+          // Reload all names when any change occurs
+          const updatedNames = await loadNames();
+          setNames(updatedNames);
+        }
+      )
+      .subscribe();
+
+    // Cleanup subscription on unmount
+    return () => {
+      supabase.removeChannel(channel);
+    };
+  }, []);
+
   const loadInitialData = async () => {
     const namesFromDB = await loadNames();
     setNames(namesFromDB);
 
     const savedWinners = loadWinners();
     setWinners(savedWinners);
-
-    // Set up real-time subscription for live sync across devices
-    const sessionId = getCurrentSessionId();
-    if (sessionId) {
-      const channel = supabase
-        .channel('participants-changes')
-        .on(
-          'postgres_changes',
-          {
-            event: '*', // Listen to all events (INSERT, UPDATE, DELETE)
-            schema: 'public',
-            table: 'participants',
-            filter: `session_id=eq.${sessionId}`
-          },
-          async (payload) => {
-            console.log('Real-time update:', payload);
-            // Reload all names when any change occurs
-            const updatedNames = await loadNames();
-            setNames(updatedNames);
-          }
-        )
-        .subscribe();
-
-      // Cleanup subscription on unmount
-      return () => {
-        supabase.removeChannel(channel);
-      };
-    }
   };
 
   const handleContinue = async () => {
@@ -134,6 +129,9 @@ const WheelPage = () => {
   const handleRemoveName = async (nameToRemove) => {
     const result = await removeName(nameToRemove);
     if (result.success) {
+      // Immediately update local state
+      setNames(prevNames => prevNames.filter(name => name !== nameToRemove));
+
       // Also remove from winners if present
       const newWinners = winners.filter(name => name !== nameToRemove);
       setWinners(newWinners);
