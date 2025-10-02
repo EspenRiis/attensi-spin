@@ -7,13 +7,15 @@ A fully-featured, gamified wheel of names application built with React, featurin
 ## 🎯 Features
 
 ### Core Functionality
-- ✅ **Dynamic Name Management**: Add and remove names on the fly
+- ✅ **Dynamic Name Management**: Add and remove names on the fly with instant UI updates
 - ✅ **QR Code Integration**: Users can scan a QR code to add their names via mobile
-- ✅ **Session Persistence**: Saves names to localStorage with welcome-back modal
+- ✅ **Session-Based Isolation**: Each host has their own private session with unique session ID
+- ✅ **Session Management**: Welcome-back modal to continue previous session or start fresh
+- ✅ **Cross-Device Real-time Sync**: Changes sync instantly across all devices via Supabase
 - ✅ **Unlimited Participants**: No limit on number of names (though readability decreases with many names)
-- ✅ **Winner Tracking**: Keeps track of all previous winners
+- ✅ **Winner Tracking**: Keeps track of all previous winners (stored locally)
 - ✅ **Multiple Spins**: Support for multiple winners with option to remove past winners
-- ✅ **Real-time Updates**: Changes made via QR code appear instantly on the main wheel
+- ✅ **Privacy & GDPR Compliant**: Session-based data isolation ensures users don't see each other's data
 
 ### Gamification
 - 🎉 **Confetti Animation**: Celebration with colorful confetti when winner is announced
@@ -33,20 +35,33 @@ A fully-featured, gamified wheel of names application built with React, featurin
 ### Prerequisites
 - Node.js (v14 or higher recommended)
 - npm or yarn
+- Supabase account (free tier works fine)
 
 ### Installation
 
-1. **Install dependencies:**
+1. **Clone the repository and install dependencies:**
    ```bash
    npm install
    ```
 
-2. **Start the development server:**
+2. **Set up Supabase:**
+   - Create a new project at [supabase.com](https://supabase.com)
+   - Run the database migration from `SESSION-MIGRATION.md`
+   - Get your Supabase URL and anon key from project settings
+
+3. **Configure environment variables:**
+   Create a `.env` file:
+   ```env
+   VITE_SUPABASE_URL=your_supabase_url
+   VITE_SUPABASE_ANON_KEY=your_supabase_anon_key
+   ```
+
+4. **Start the development server:**
    ```bash
    npm run dev
    ```
 
-3. **Open your browser:**
+5. **Open your browser:**
    Navigate to `http://localhost:5173`
 
 ### Building for Production
@@ -73,10 +88,10 @@ npm run preview
    - Name appears in the participant list
 
 2. **Add Names via QR Code**:
-   - Show the QR code on the right panel
-   - Users scan with their phones
+   - Show the QR code on the right panel (includes your unique session ID)
+   - Participants scan with their phones
    - They're taken to a mobile-friendly page to enter their name
-   - Names appear instantly on the main wheel
+   - Names appear instantly on the main wheel AND all connected devices
 
 3. **Spin the Wheel**:
    - Click the large "SPIN" button
@@ -91,15 +106,27 @@ npm run preview
 
 ### Session Management
 
-When you return to the app:
-- If you have saved names, you'll see a welcome modal
-- Choose "Continue" to load previous session
-- Choose "Start Fresh" to clear everything and start over
+**First Visit:**
+- A unique session ID is automatically generated and stored in your browser
+- Your QR code includes this session ID
+- Participants who scan join YOUR specific session
+
+**Returning to the App:**
+- If you have saved data in your session, you'll see a "Welcome Back!" modal
+- Choose "Continue" to load your previous session with all names
+- Choose "Start Fresh" to clear everything and create a new session
+
+**Privacy:**
+- Each session is completely isolated
+- Other users cannot see your participants
+- Incognito mode always starts a fresh session
+- GDPR compliant - no cross-session data sharing
 
 ## 🛠️ Tech Stack
 
 - **React 18** - UI framework
 - **Vite** - Build tool and dev server
+- **Supabase** - Backend database with real-time subscriptions
 - **Framer Motion** - Animations
 - **QRCode.react** - QR code generation
 - **Canvas Confetti** - Celebration effects
@@ -120,22 +147,29 @@ attensi-spin/
 │   │   ├── Wheel.css
 │   │   ├── ParticipantList.jsx   # List of names
 │   │   ├── ParticipantList.css
-│   │   ├── QRCodePanel.jsx       # QR code display
+│   │   ├── QRCodePanel.jsx       # QR code display with session ID
 │   │   ├── QRCodePanel.css
-│   │   ├── WelcomeModal.jsx      # Session modal
+│   │   ├── WelcomeModal.jsx      # Session continue/fresh modal
 │   │   ├── WelcomeModal.css
 │   │   ├── WinnerModal.jsx       # Winner announcement
 │   │   └── WinnerModal.css
 │   ├── utils/
-│   │   ├── storage.js            # localStorage utilities
-│   │   └── colors.js             # Color generation
+│   │   ├── storage.js            # Supabase storage utilities
+│   │   ├── session.js            # Session ID management
+│   │   ├── colors.js             # Color generation
+│   │   └── firebase.js           # Legacy (unused)
+│   ├── lib/
+│   │   └── supabase.js           # Supabase client configuration
 │   ├── App.jsx                   # Main app with routing
 │   ├── main.jsx                  # Entry point
 │   └── index.css                 # Global styles
 ├── index.html
 ├── package.json
 ├── vite.config.js
-└── README.md
+├── vercel.json                   # Vercel deployment config
+├── README.md                     # This file
+├── SESSION-MIGRATION.md          # Database migration guide
+└── DEPLOYMENT.md                 # Deployment instructions
 ```
 
 ## 🎨 Attensi Brand Guidelines
@@ -186,25 +220,33 @@ height={500} // Change canvas height
 
 ## 📝 Notes
 
-### Backend Integration (Optional)
-The current version uses localStorage for data persistence. For true real-time sync across devices:
+### Backend Architecture
+This app uses **Supabase** for real-time cross-device synchronization:
 
-1. **Firebase**: Add Firebase Realtime Database
-2. **Supabase**: Use Supabase with real-time subscriptions
-3. **Custom Backend**: Build your own WebSocket server
+- **Participants Table**: Stores names with session_id for isolation
+- **Real-time Subscriptions**: Changes sync instantly across all devices
+- **Session Management**: Each host gets a unique session ID stored in localStorage
+- **Row Level Security**: Policies allow public read/write (can be locked down if needed)
+
+See `SESSION-MIGRATION.md` for database schema details.
+
+### Data Storage
+- **Participant Names**: Stored in Supabase, filtered by session_id
+- **Session ID**: Stored in browser localStorage
+- **Winners History**: Stored locally in localStorage (not synced)
 
 ### Browser Compatibility
 - Modern browsers (Chrome, Firefox, Safari, Edge)
 - Mobile browsers (iOS Safari, Chrome Mobile)
 - Requires JavaScript enabled
-- localStorage must be available
+- localStorage must be available for session persistence
 
 ## 🐛 Known Limitations
 
-- QR code real-time sync works via localStorage events (same browser only)
-- For true cross-device sync, backend integration is needed
-- Wheel becomes hard to read with 50+ names (consider limiting or grouping)
+- Wheel becomes hard to read with 50+ names (consider limiting participants)
 - Confetti may be performance-intensive on older devices
+- Winner history is local only (not synced across devices)
+- Session ID stored in localStorage (clearing browser data clears session)
 
 ## 📄 License
 

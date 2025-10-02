@@ -20,9 +20,10 @@ I've successfully built the complete Attensi Spin application with all the featu
 ## 🎯 Features Implemented
 
 ### ✅ Functionality Checklist
-- [x] Dynamic name addition and removal
-- [x] QR code for mobile name entry
-- [x] Real-time updates via localStorage events
+- [x] Dynamic name addition and removal with instant UI updates
+- [x] QR code for mobile name entry (includes unique session ID)
+- [x] Real-time cross-device sync via Supabase real-time subscriptions
+- [x] Session-based data isolation for privacy and GDPR compliance
 - [x] Session persistence with welcome modal
 - [x] "Continue" or "Start Fresh" options on return
 - [x] Unlimited participant support
@@ -33,6 +34,7 @@ I've successfully built the complete Attensi Spin application with all the featu
 - [x] Participant counter
 - [x] Name list display
 - [x] Toast notifications
+- [x] Automatic session ID generation
 
 ### ✅ Design & Branding
 - [x] Attensi color palette (Navy, Cyan, Neon Green)
@@ -102,6 +104,7 @@ npm run preview
 ### Tech Stack
 - React 18
 - Vite (build tool)
+- Supabase (real-time database & backend)
 - Framer Motion (animations)
 - QRCode.react (QR generation)
 - Canvas Confetti (celebration)
@@ -123,20 +126,21 @@ npm run preview
 
 ## ⚠️ Important Notes
 
-### Backend Limitation
-The current implementation uses **localStorage** for data persistence. This means:
-- ✅ Works perfectly on one device
-- ✅ Data persists between sessions
-- ⚠️ QR code sync works via localStorage events (same browser only)
-- ❌ True cross-device real-time sync requires a backend
+### Backend Architecture
+The app uses **Supabase** for real-time backend:
+- ✅ True cross-device synchronization
+- ✅ Real-time updates across all connected devices
+- ✅ Session-based data isolation
+- ✅ GDPR compliant privacy model
+- ✅ Free tier supports 500MB database and 2GB bandwidth
 
-### To Add True Cross-Device Sync:
-You'll need to integrate a backend service like:
-- **Firebase Realtime Database** (easiest)
-- **Supabase** (open source)
-- **Custom WebSocket server**
+### Database Schema
+- **participants** table with columns: id, name, session_id, created_at
+- Session ID uniquely identifies each host's wheel
+- Names are filtered by session_id for privacy
+- Real-time subscriptions enabled for instant sync
 
-See DEPLOYMENT.md for backend integration guides.
+See SESSION-MIGRATION.md for complete database setup.
 
 ## 📁 File Structure
 
@@ -148,29 +152,36 @@ attensi-spin/
 │   │   ├── AddNamePage.jsx & .css     # Mobile QR entry page
 │   │   ├── Wheel.jsx & .css           # Spinning wheel
 │   │   ├── ParticipantList.jsx & .css # Name list
-│   │   ├── QRCodePanel.jsx & .css     # QR display
-│   │   ├── WelcomeModal.jsx & .css    # Session modal
+│   │   ├── QRCodePanel.jsx & .css     # QR display with session ID
+│   │   ├── WelcomeModal.jsx & .css    # Session continue/fresh modal
 │   │   └── WinnerModal.jsx & .css     # Winner announcement
 │   ├── utils/
-│   │   ├── storage.js                 # localStorage helpers
+│   │   ├── storage.js                 # Supabase storage functions
+│   │   ├── session.js                 # Session ID management
 │   │   └── colors.js                  # Color utilities
+│   ├── lib/
+│   │   └── supabase.js                # Supabase client config
 │   ├── App.jsx                        # Routes
 │   ├── main.jsx                       # Entry point
 │   └── index.css                      # Global styles
 ├── index.html
 ├── package.json
 ├── vite.config.js
+├── vercel.json
 ├── README.md
+├── SESSION-MIGRATION.md
 └── DEPLOYMENT.md
 ```
 
 ## 🎬 Next Steps
 
-1. **Test Locally**: Run `npm run dev` and test all features
-2. **Customize**: Adjust colors, animations, or text as needed
-3. **Deploy**: Follow DEPLOYMENT.md for hosting options
-4. **Backend** (Optional): Add Firebase/Supabase for cross-device sync
-5. **Share**: Send the QR code to your team!
+1. **Set up Supabase**: Create account and run database migration (SESSION-MIGRATION.md)
+2. **Configure Environment**: Add Supabase credentials to .env file
+3. **Test Locally**: Run `npm run dev` and test all features
+4. **Test Cross-Device**: Scan QR code from another device to verify real-time sync
+5. **Customize**: Adjust colors, animations, or text as needed
+6. **Deploy**: Follow DEPLOYMENT.md for Vercel hosting
+7. **Share**: Send the QR code to your team!
 
 ## 🛠️ Quick Customizations
 
