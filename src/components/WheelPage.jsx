@@ -1,16 +1,32 @@
 import { useState, useEffect, useCallback } from 'react';
 import { motion, AnimatePresence } from 'framer-motion';
+import { useSearchParams } from 'react-router-dom';
 import Wheel from './Wheel';
 import ParticipantList from './ParticipantList';
 import QRCodePanel from './QRCodePanel';
 import WelcomeModal from './WelcomeModal';
 import WinnerModal from './WinnerModal';
-import { addName, loadNames, clearNames, removeName, saveWinners, loadWinners, hasStoredData } from '../utils/storage';
+import {
+  addName,
+  loadNames,
+  clearNames,
+  removeName,
+  saveWinners,
+  loadWinners,
+  hasStoredData,
+  loadParticipantsFromEvent,
+  markParticipantAsWinner,
+  addNameToEvent,
+  removeNameFromEvent
+} from '../utils/storage';
 import { hasSession, createNewSession, getCurrentSessionId, clearSession } from '../utils/session';
 import { supabase } from '../lib/supabase';
 import './WheelPage.css';
 
 const WheelPage = () => {
+  const [searchParams] = useSearchParams();
+  const eventId = searchParams.get('eventId');
+
   const [names, setNames] = useState([]);
   const [inputName, setInputName] = useState('');
   const [showWelcomeModal, setShowWelcomeModal] = useState(false);
@@ -21,59 +37,111 @@ const WheelPage = () => {
   const [toastMessage, setToastMessage] = useState('');
   const [clearWinner, setClearWinner] = useState(false);
 
-  useEffect(() => {
-    // Check if user has an existing session with data
-    const initializeSession = async () => {
-      if (hasSession()) {
-        // Check if there's data in this session
-        const hasData = await hasStoredData();
+  // Event mode state
+  const [isEventMode, setIsEventMode] = useState(false);
+  const [currentEventId, setCurrentEventId] = useState(null);
+  const [user, setUser] = useState(null);
 
-        if (hasData) {
-          // Show modal to continue or start fresh - DON'T load data yet
-          setShowWelcomeModal(true);
-        } else {
-          // Has session but no data, just load it
-          await loadInitialData();
-        }
+  // Initialize: Check auth state and eventId parameter
+  useEffect(() => {
+    const initialize = async () => {
+      // Check if user is logged in
+      const { data: { session } } = await supabase.auth.getSession();
+      setUser(session?.user || null);
+
+      // If eventId is provided, switch to event mode
+      if (eventId) {
+        setIsEventMode(true);
+        setCurrentEventId(eventId);
+        await loadEventData(eventId);
       } else {
-        // No session, create a new one
-        createNewSession();
-        await loadInitialData();
+        // Free tier: session-based mode
+        setIsEventMode(false);
+        setCurrentEventId(null);
+        await initializeSessionMode();
       }
     };
 
-    initializeSession();
-  }, []);
+    initialize();
+  }, [eventId]);
 
-  // Separate effect for real-time subscription
+  const initializeSessionMode = async () => {
+    if (hasSession()) {
+      // Check if there's data in this session
+      const hasData = await hasStoredData();
+
+      if (hasData) {
+        // Show modal to continue or start fresh - DON'T load data yet
+        setShowWelcomeModal(true);
+      } else {
+        // Has session but no data, just load it
+        await loadInitialData();
+      }
+    } else {
+      // No session, create a new one
+      createNewSession();
+      await loadInitialData();
+    }
+  };
+
+  const loadEventData = async (evtId) => {
+    const { names: loadedNames, winners: loadedWinners } = await loadParticipantsFromEvent(evtId);
+    setNames(loadedNames);
+    setWinners(loadedWinners);
+  };
+
+  // Separate effect for real-time subscription (handles both session and event modes)
   useEffect(() => {
-    const sessionId = getCurrentSessionId();
-    if (!sessionId) return;
+    if (isEventMode && currentEventId) {
+      // Event mode: Subscribe to event_id changes
+      const channel = supabase
+        .channel('event-participants-changes')
+        .on(
+          'postgres_changes',
+          {
+            event: '*',
+            schema: 'public',
+            table: 'participants',
+            filter: `event_id=eq.${currentEventId}`
+          },
+          async (payload) => {
+            console.log('Real-time update (event mode):', payload);
+            await loadEventData(currentEventId);
+          }
+        )
+        .subscribe();
 
-    const channel = supabase
-      .channel('participants-changes')
-      .on(
-        'postgres_changes',
-        {
-          event: '*', // Listen to all events (INSERT, UPDATE, DELETE)
-          schema: 'public',
-          table: 'participants',
-          filter: `session_id=eq.${sessionId}`
-        },
-        async (payload) => {
-          console.log('Real-time update:', payload);
-          // Reload all names when any change occurs
-          const updatedNames = await loadNames();
-          setNames(updatedNames);
-        }
-      )
-      .subscribe();
+      return () => {
+        supabase.removeChannel(channel);
+      };
+    } else {
+      // Session mode: Subscribe to session_id changes
+      const sessionId = getCurrentSessionId();
+      if (!sessionId) return;
 
-    // Cleanup subscription on unmount
-    return () => {
-      supabase.removeChannel(channel);
-    };
-  }, []);
+      const channel = supabase
+        .channel('session-participants-changes')
+        .on(
+          'postgres_changes',
+          {
+            event: '*',
+            schema: 'public',
+            table: 'participants',
+            filter: `session_id=eq.${sessionId}`
+          },
+          async (payload) => {
+            console.log('Real-time update (session mode):', payload);
+            const updatedNames = await loadNames();
+            setNames(updatedNames);
+          }
+        )
+        .subscribe();
+
+      return () => {
+        supabase.removeChannel(channel);
+      };
+    }
+  }, [isEventMode, currentEventId]);
 
   const loadInitialData = async () => {
     const namesFromDB = await loadNames();
@@ -114,8 +182,13 @@ const WheelPage = () => {
   const handleAddName = async (e) => {
     e.preventDefault();
     if (inputName.trim() && !names.includes(inputName.trim())) {
-      const result = await addName(inputName.trim());
+      const result = isEventMode
+        ? await addNameToEvent(currentEventId, inputName.trim())
+        : await addName(inputName.trim());
+
       if (result.success) {
+        // Optimistically update local state immediately
+        setNames(prevNames => [...prevNames, inputName.trim()]);
         setInputName('');
         showToastMessage(`${inputName.trim()} added!`);
       } else {
@@ -127,7 +200,10 @@ const WheelPage = () => {
   };
 
   const handleRemoveName = async (nameToRemove) => {
-    const result = await removeName(nameToRemove);
+    const result = isEventMode
+      ? await removeNameFromEvent(currentEventId, nameToRemove)
+      : await removeName(nameToRemove);
+
     if (result.success) {
       // Immediately update local state
       setNames(prevNames => prevNames.filter(name => name !== nameToRemove));
@@ -135,7 +211,11 @@ const WheelPage = () => {
       // Also remove from winners if present
       const newWinners = winners.filter(name => name !== nameToRemove);
       setWinners(newWinners);
-      saveWinners(newWinners);
+
+      // Only save to localStorage in session mode
+      if (!isEventMode) {
+        saveWinners(newWinners);
+      }
 
       showToastMessage(`${nameToRemove} removed!`);
     } else {
@@ -156,17 +236,26 @@ const WheelPage = () => {
   const handleSpinComplete = useCallback((winnerName) => {
     setWinner(winnerName);
     setIsSpinning(false);
-    
+
     // Add to winners list
     setWinners(prevWinners => {
       if (!prevWinners.includes(winnerName)) {
         const newWinners = [...prevWinners, winnerName];
-        saveWinners(newWinners);
+
+        // Save winner based on mode
+        if (isEventMode && currentEventId) {
+          // Event mode: Save to database
+          markParticipantAsWinner(currentEventId, winnerName);
+        } else {
+          // Session mode: Save to localStorage
+          saveWinners(newWinners);
+        }
+
         return newWinners;
       }
       return prevWinners;
     });
-  }, []); // Empty dependency array - function never changes
+  }, [isEventMode, currentEventId]);
 
   const handleSpinAgain = () => {
     setWinner(null);
@@ -185,18 +274,33 @@ const WheelPage = () => {
 
   const handleClearWinners = () => {
     setWinners([]);
-    saveWinners([]);
+    if (!isEventMode) {
+      saveWinners([]);
+    }
     setClearWinner(true);
     setTimeout(() => setClearWinner(false), 0);
     showToastMessage('Winner history cleared!');
   };
 
-  const handleRemoveAllWinners = () => {
+  const handleRemoveAllWinners = async () => {
+    // Remove each winner individually (works for both modes)
+    for (const winner of winners) {
+      if (isEventMode) {
+        await removeNameFromEvent(currentEventId, winner);
+      } else {
+        await removeName(winner);
+      }
+    }
+
+    // Update state
     const newNames = names.filter(name => !winners.includes(name));
     setNames(newNames);
-    saveNames(newNames);
     setWinners([]);
-    saveWinners([]);
+
+    if (!isEventMode) {
+      saveWinners([]);
+    }
+
     showToastMessage('All winners removed from wheel!');
   };
 

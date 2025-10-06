@@ -5,7 +5,8 @@
       "Bash(find:*)",
       "Bash(cd:*)",
       "Bash(lsof:*)",
-      "Bash(xargs kill:*)"
+      "Bash(xargs kill:*)",
+      "Bash(curl:*)"
     ],
     "deny": [],
     "ask": []

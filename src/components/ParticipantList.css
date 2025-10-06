@@ -37,6 +37,7 @@
   overflow-y: auto;
   flex: 1;
   padding-right: 5px;
+  background: transparent;
 }
 
 .list-items::-webkit-scrollbar {
@@ -128,19 +129,43 @@
 
 .empty-state {
   text-align: center;
-  padding: 40px 20px;
-  color: var(--gray-light);
+  padding: 60px 20px;
+  background: rgba(26, 41, 66, 0.6) !important;
+  border: 2px dashed rgba(0, 217, 255, 0.3);
+  border-radius: 12px;
+  margin: 10px 0;
 }
 
 .empty-state p {
   margin: 0;
   font-size: 18px;
+  color: rgba(0, 217, 255, 0.6);
+  font-weight: 500;
 }
 
 .empty-subtitle {
   font-size: 14px;
-  opacity: 0.7;
-  margin-top: 5px;
+  color: rgba(255, 255, 255, 0.4);
+  margin-top: 8px;
+}
+
+.empty-state::before {
+  content: '👥';
+  display: block;
+  font-size: 48px;
+  margin-bottom: 15px;
+  animation: gentle-bounce 2s ease-in-out infinite;
+}
+
+@keyframes gentle-bounce {
+  0%, 100% {
+    transform: translateY(0);
+    opacity: 0.6;
+  }
+  50% {
+    transform: translateY(-10px);
+    opacity: 1;
+  }
 }
 
 @media (max-width: 1024px) {

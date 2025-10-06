@@ -12,6 +12,7 @@ const Wheel = ({ names, onSpinComplete, isSpinning, clearWinner }) => {
   const hasCalculatedWinner = useRef(false);
   const onSpinCompleteRef = useRef(onSpinComplete);
   const currentAnimationTarget = useRef(null);
+  const emptyAnimationFrame = useRef(null);
 
   useEffect(() => {
     onSpinCompleteRef.current = onSpinComplete;
@@ -50,20 +51,75 @@ const Wheel = ({ names, onSpinComplete, isSpinning, clearWinner }) => {
     ctx.clearRect(0, 0, canvas.width, canvas.height);
 
     if (names.length === 0) {
+      // Create animated gradient background for empty state
+      const time = Date.now() / 1000;
+      const gradient = ctx.createLinearGradient(
+        centerX + Math.cos(time) * radius,
+        centerY + Math.sin(time) * radius,
+        centerX - Math.cos(time) * radius,
+        centerY - Math.sin(time) * radius
+      );
+      gradient.addColorStop(0, '#1a2942');
+      gradient.addColorStop(0.5, '#2a3952');
+      gradient.addColorStop(1, '#1a2942');
+
       ctx.beginPath();
       ctx.arc(centerX, centerY, radius, 0, 2 * Math.PI);
-      ctx.fillStyle = '#1a2942';
+      ctx.fillStyle = gradient;
+      ctx.fill();
+
+      // Animated glowing border
+      ctx.strokeStyle = `rgba(0, 217, 255, ${0.5 + Math.sin(time * 2) * 0.3})`;
+      ctx.lineWidth = 4;
+      ctx.shadowColor = '#00D9FF';
+      ctx.shadowBlur = 15 + Math.sin(time * 2) * 5;
+      ctx.stroke();
+
+      // Draw placeholder segments
+      const placeholderCount = 8;
+      const anglePerSegment = (2 * Math.PI) / placeholderCount;
+      for (let i = 0; i < placeholderCount; i++) {
+        const startAngle = i * anglePerSegment - Math.PI / 2;
+        const endAngle = startAngle + anglePerSegment;
+
+        ctx.beginPath();
+        ctx.moveTo(centerX, centerY);
+        ctx.arc(centerX, centerY, radius - 10, startAngle, endAngle);
+        ctx.closePath();
+        ctx.strokeStyle = 'rgba(0, 217, 255, 0.1)';
+        ctx.lineWidth = 1;
+        ctx.stroke();
+      }
+
+      // Center circle
+      ctx.beginPath();
+      ctx.arc(centerX, centerY, 70, 0, 2 * Math.PI);
+      ctx.fillStyle = '#0A1628';
       ctx.fill();
       ctx.strokeStyle = '#00D9FF';
       ctx.lineWidth = 3;
       ctx.stroke();
 
+      // Text with glow
+      ctx.shadowColor = '#00D9FF';
+      ctx.shadowBlur = 10;
       ctx.fillStyle = '#00D9FF';
-      ctx.font = 'bold 20px Arial';
+      ctx.font = 'bold 16px Arial';
       ctx.textAlign = 'center';
       ctx.textBaseline = 'middle';
-      ctx.fillText('Add names to start!', centerX, centerY);
+      ctx.fillText('Add names', centerX, centerY - 10);
+      ctx.font = 'bold 14px Arial';
+      ctx.fillText('to start!', centerX, centerY + 10);
+
+      // Request animation frame for continuous animation
+      emptyAnimationFrame.current = requestAnimationFrame(drawWheel);
       return;
+    }
+
+    // Cancel empty animation if it's running
+    if (emptyAnimationFrame.current) {
+      cancelAnimationFrame(emptyAnimationFrame.current);
+      emptyAnimationFrame.current = null;
     }
 
     const colors = generateSegmentColors(names.length);

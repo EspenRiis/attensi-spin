@@ -143,3 +143,77 @@ export const loadWinners = () => {
     return [];
   }
 };
+
+// ============================================
+// EVENT-BASED FUNCTIONS (for logged-in users)
+// ============================================
+
+// Load all participants from an event
+export const loadParticipantsFromEvent = async (eventId) => {
+  try {
+    const { data, error } = await supabase
+      .from('participants')
+      .select('name, is_winner')
+      .eq('event_id', eventId)
+      .order('created_at', { ascending: true });
+
+    if (error) throw error;
+    return {
+      names: data.map(item => item.name),
+      winners: data.filter(item => item.is_winner).map(item => item.name)
+    };
+  } catch (error) {
+    console.error('Error loading participants from event:', error);
+    return { names: [], winners: [] };
+  }
+};
+
+// Mark a participant as winner in the database
+export const markParticipantAsWinner = async (eventId, name) => {
+  try {
+    const { error } = await supabase
+      .from('participants')
+      .update({ is_winner: true, won_at: new Date().toISOString() })
+      .eq('event_id', eventId)
+      .eq('name', name);
+
+    if (error) throw error;
+    return { success: true };
+  } catch (error) {
+    console.error('Error marking participant as winner:', error);
+    return { success: false, error: error.message };
+  }
+};
+
+// Add a name to an event (logged-in user adding manually)
+export const addNameToEvent = async (eventId, name) => {
+  try {
+    const { data, error } = await supabase
+      .from('participants')
+      .insert([{ name: name.trim(), event_id: eventId }])
+      .select();
+
+    if (error) throw error;
+    return { success: true, data };
+  } catch (error) {
+    console.error('Error adding name to event:', error);
+    return { success: false, error: error.message };
+  }
+};
+
+// Remove a name from an event
+export const removeNameFromEvent = async (eventId, name) => {
+  try {
+    const { error } = await supabase
+      .from('participants')
+      .delete()
+      .eq('name', name)
+      .eq('event_id', eventId);
+
+    if (error) throw error;
+    return { success: true };
+  } catch (error) {
+    console.error('Error removing name from event:', error);
+    return { success: false, error: error.message };
+  }
+};
