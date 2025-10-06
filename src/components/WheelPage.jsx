@@ -94,6 +94,7 @@ const WheelPage = () => {
   useEffect(() => {
     if (isEventMode && currentEventId) {
       // Event mode: Subscribe to event_id changes
+      console.log('🔔 Setting up event mode subscription for event:', currentEventId);
       const channel = supabase
         .channel('event-participants-changes')
         .on(
@@ -105,20 +106,27 @@ const WheelPage = () => {
             filter: `event_id=eq.${currentEventId}`
           },
           async (payload) => {
-            console.log('Real-time update (event mode):', payload);
+            console.log('✅ Real-time update (event mode):', payload);
             await loadEventData(currentEventId);
           }
         )
-        .subscribe();
+        .subscribe((status) => {
+          console.log('📡 Event subscription status:', status);
+        });
 
       return () => {
+        console.log('🔌 Cleaning up event subscription');
         supabase.removeChannel(channel);
       };
     } else {
       // Session mode: Subscribe to session_id changes
       const sessionId = getCurrentSessionId();
-      if (!sessionId) return;
+      if (!sessionId) {
+        console.warn('⚠️ No session ID found for subscription');
+        return;
+      }
 
+      console.log('🔔 Setting up session mode subscription for session:', sessionId);
       const channel = supabase
         .channel('session-participants-changes')
         .on(
@@ -130,14 +138,17 @@ const WheelPage = () => {
             filter: `session_id=eq.${sessionId}`
           },
           async (payload) => {
-            console.log('Real-time update (session mode):', payload);
+            console.log('✅ Real-time update (session mode):', payload);
             const updatedNames = await loadNames();
             setNames(updatedNames);
           }
         )
-        .subscribe();
+        .subscribe((status) => {
+          console.log('📡 Session subscription status:', status);
+        });
 
       return () => {
+        console.log('🔌 Cleaning up session subscription');
         supabase.removeChannel(channel);
       };
     }
