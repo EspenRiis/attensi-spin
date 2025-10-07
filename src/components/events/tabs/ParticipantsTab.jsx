@@ -2,6 +2,7 @@ import { useState, useEffect } from 'react';
 import { useParams } from 'react-router-dom';
 import { motion } from 'framer-motion';
 import { supabase } from '../../../lib/supabase';
+import Papa from 'papaparse';
 import './ParticipantsTab.css';
 
 const ParticipantsTab = ({ event }) => {
@@ -180,6 +181,34 @@ const ParticipantsTab = ({ event }) => {
     });
   };
 
+  const handleExportCSV = () => {
+    // Use filtered participants for export
+    const dataToExport = filteredParticipants.map(p => ({
+      Name: p.name || '',
+      Email: p.email || '',
+      Organization: p.organization || '',
+      Phone: p.phone || '',
+      'Marketing Consent': p.consent_marketing ? 'Yes' : 'No',
+      Winner: p.is_winner ? 'Yes' : 'No',
+      'Registered At': formatDate(p.created_at),
+      'Custom Field 1': p.custom_field_1 || '',
+      'Custom Field 2': p.custom_field_2 || ''
+    }));
+
+    const csv = Papa.unparse(dataToExport);
+    const blob = new Blob([csv], { type: 'text/csv;charset=utf-8;' });
+    const link = document.createElement('a');
+    const url = URL.createObjectURL(blob);
+
+    link.setAttribute('href', url);
+    link.setAttribute('download', `participants_${event?.name || 'event'}_${new Date().toISOString().split('T')[0]}.csv`);
+    link.style.visibility = 'hidden';
+
+    document.body.appendChild(link);
+    link.click();
+    document.body.removeChild(link);
+  };
+
   // Pagination
   const totalPages = Math.ceil(filteredParticipants.length / itemsPerPage);
   const startIndex = (currentPage - 1) * itemsPerPage;
@@ -236,6 +265,11 @@ const ParticipantsTab = ({ event }) => {
                 Delete Selected
               </button>
             </>
+          )}
+          {filteredParticipants.length > 0 && (
+            <button onClick={handleExportCSV} className="btn-export">
+              Export CSV
+            </button>
           )}
         </div>
       </div>

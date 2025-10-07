@@ -144,12 +144,7 @@ const OverviewTab = ({ event, onEventUpdate }) => {
         </div>
       </motion.div>
 
-      {/* QR Code Panel - Show only when event is live */}
-      {event.status === 'live' && (
-        <EventQRCodePanel eventId={event.id} eventName={event.name} />
-      )}
-
-      {/* Stats Dashboard */}
+      {/* Stats Dashboard - Moved higher */}
       <motion.div
         className="event-stats"
         initial={{ opacity: 0, y: 20 }}
@@ -176,6 +171,11 @@ const OverviewTab = ({ event, onEventUpdate }) => {
           </div>
         </div>
       </motion.div>
+
+      {/* QR Code Panel - Show only when event is live, moved to bottom and compacted */}
+      {event.status === 'live' && (
+        <EventQRCodePanel eventId={event.id} eventName={event.name} event={event} onEventUpdate={onEventUpdate} />
+      )}
     </div>
   );
 };
