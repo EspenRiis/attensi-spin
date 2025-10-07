@@ -126,7 +126,7 @@ const ResetPasswordForm = () => {
           transition={{ duration: 0.5 }}
         >
           <div className="card-header">
-            <h1>Attensi Spin</h1>
+            <h1>Name Roulette</h1>
             <p>{mode === 'request' ? 'Reset your password' : 'Set new password'}</p>
           </div>
 

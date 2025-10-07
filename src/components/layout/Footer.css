@@ -1,0 +1,37 @@
+.app-footer {
+  background: rgba(26, 41, 66, 0.4);
+  backdrop-filter: blur(10px);
+  border-top: 2px solid rgba(0, 217, 255, 0.2);
+  padding: 20px;
+  margin-top: auto;
+}
+
+.footer-container {
+  max-width: 1400px;
+  margin: 0 auto;
+  text-align: center;
+}
+
+.footer-text {
+  font-size: 14px;
+  color: rgba(255, 255, 255, 0.6);
+  margin: 0;
+  letter-spacing: 0.5px;
+}
+
+.footer-brand {
+  color: var(--cyan-bright);
+  font-weight: 600;
+  text-shadow: 0 0 10px rgba(0, 217, 255, 0.4);
+}
+
+/* Responsive */
+@media (max-width: 768px) {
+  .app-footer {
+    padding: 15px;
+  }
+
+  .footer-text {
+    font-size: 12px;
+  }
+}

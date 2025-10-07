@@ -1,5 +1,6 @@
 import { Routes, Route } from 'react-router-dom'
 import Header from './components/layout/Header'
+import Footer from './components/layout/Footer'
 import WheelPage from './components/WheelPage'
 import AddNamePage from './components/AddNamePage'
 import SignupForm from './components/auth/SignupForm'
@@ -14,38 +15,41 @@ function App() {
   return (
     <>
       <Header />
-      <Routes>
-      <Route path="/" element={<WheelPage />} />
-      <Route path="/add-name" element={<AddNamePage />} />
-      <Route path="/signup" element={<SignupForm />} />
-      <Route path="/login" element={<LoginForm />} />
-      <Route path="/reset-password" element={<ResetPasswordForm />} />
-      <Route
-        path="/dashboard"
-        element={
-          <ProtectedRoute>
-            <Dashboard />
-          </ProtectedRoute>
-        }
-      />
-      <Route
-        path="/events/:id"
-        element={
-          <ProtectedRoute>
-            <EventLayout />
-          </ProtectedRoute>
-        }
-      />
-      <Route
-        path="/events/:id/:tab"
-        element={
-          <ProtectedRoute>
-            <EventLayout />
-          </ProtectedRoute>
-        }
-      />
-      <Route path="/register" element={<RegisterPage />} />
-    </Routes>
+      <main style={{ flex: 1, display: 'flex', flexDirection: 'column' }}>
+        <Routes>
+        <Route path="/" element={<WheelPage />} />
+        <Route path="/add-name" element={<AddNamePage />} />
+        <Route path="/signup" element={<SignupForm />} />
+        <Route path="/login" element={<LoginForm />} />
+        <Route path="/reset-password" element={<ResetPasswordForm />} />
+        <Route
+          path="/dashboard"
+          element={
+            <ProtectedRoute>
+              <Dashboard />
+            </ProtectedRoute>
+          }
+        />
+        <Route
+          path="/events/:id"
+          element={
+            <ProtectedRoute>
+              <EventLayout />
+            </ProtectedRoute>
+          }
+        />
+        <Route
+          path="/events/:id/:tab"
+          element={
+            <ProtectedRoute>
+              <EventLayout />
+            </ProtectedRoute>
+          }
+        />
+        <Route path="/register" element={<RegisterPage />} />
+      </Routes>
+      </main>
+      <Footer />
     </>
   )
 }

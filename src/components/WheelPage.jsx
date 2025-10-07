@@ -356,7 +356,7 @@ const WheelPage = () => {
           animate={{ opacity: 1, y: 0 }}
           transition={{ duration: 0.6 }}
         >
-          Attensi Spin
+          Name Roulette
         </motion.h1>
       </header>
 
@@ -428,10 +428,6 @@ const WheelPage = () => {
           <QRCodePanel />
         </div>
       </div>
-
-      <footer className="page-footer">
-        <p>Powered by Attensi</p>
-      </footer>
     </div>
   );
 };

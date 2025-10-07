@@ -1,5 +1,4 @@
 .wheel-page {
-  min-height: 100vh;
   display: flex;
   flex-direction: column;
   position: relative;
@@ -9,11 +8,11 @@
 
 .page-header {
   text-align: center;
-  margin-bottom: 30px;
+  margin-bottom: 20px;
 }
 
 .page-header h1 {
-  font-size: 56px;
+  font-size: 48px;
   font-weight: 700;
   color: var(--cyan-bright);
   text-shadow: 0 0 30px rgba(0, 217, 255, 0.6);
@@ -24,11 +23,11 @@
 .main-content {
   display: grid;
   grid-template-columns: 1fr 2fr 1fr;
-  gap: 30px;
-  flex: 1;
+  gap: 20px;
   max-width: 1600px;
   width: 100%;
   margin: 0 auto;
+  margin-bottom: 20px;
 }
 
 .left-section,
@@ -156,18 +155,9 @@
   transform: translateY(-2px);
 }
 
-.page-footer {
-  text-align: center;
-  padding: 20px;
-  margin-top: 30px;
-  color: var(--gray-light);
-  font-size: 14px;
-  opacity: 0.7;
-}
-
 .toast {
   position: fixed;
-  top: 20px;
+  top: 80px;
   right: 20px;
   background: linear-gradient(135deg, var(--cyan-bright), #0088FF);
   color: var(--navy-dark);
@@ -175,14 +165,22 @@
   border-radius: 10px;
   font-weight: 600;
   box-shadow: 0 5px 20px rgba(0, 217, 255, 0.5);
-  z-index: 3000;
+  z-index: 10000;
+  isolation: isolate;
 }
 
 /* Responsive Design */
+@media (max-width: 1400px) {
+  .main-content {
+    max-width: 1200px;
+    gap: 15px;
+  }
+}
+
 @media (max-width: 1200px) {
   .main-content {
     grid-template-columns: 1fr;
-    gap: 20px;
+    gap: 15px;
   }
 
   .left-section,
@@ -193,15 +191,23 @@
   .center-section {
     order: 1;
   }
+
+  .page-header h1 {
+    font-size: 40px;
+  }
 }
 
 @media (max-width: 768px) {
+  .page-header {
+    margin-bottom: 15px;
+  }
+
   .page-header h1 {
-    font-size: 36px;
+    font-size: 32px;
   }
 
   .spin-button {
-    padding: 20px 60px;
+    padding: 18px 50px;
     font-size: 24px;
   }
 
@@ -210,13 +216,15 @@
   }
 
   .main-content {
-    gap: 15px;
+    gap: 12px;
+    margin-bottom: 15px;
   }
 }
 
 @media (max-width: 480px) {
   .page-header h1 {
     font-size: 28px;
+    letter-spacing: 1px;
   }
 
   .spin-button {
@@ -230,5 +238,9 @@
 
   .add-button {
     width: 100%;
+  }
+
+  .wheel-page {
+    padding: 10px;
   }
 }

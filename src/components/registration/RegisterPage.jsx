@@ -369,7 +369,7 @@ const RegisterPage = () => {
 
           {event.branding_config.show_attensi_branding && (
             <div className="powered-by">
-              <p>Powered by Attensi Spin</p>
+              <p>Powered by Attensi</p>
             </div>
           )}
         </motion.div>

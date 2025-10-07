@@ -47,7 +47,7 @@ const Header = () => {
         <div className="header-left">
           <button onClick={() => navigate('/')} className="logo-btn">
             <span className="logo-icon">🎡</span>
-            <span className="logo-text">Attensi Spin</span>
+            <span className="logo-text">Name Roulette</span>
           </button>
         </div>
 
