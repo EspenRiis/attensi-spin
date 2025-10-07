@@ -8,6 +8,7 @@ import './OverviewTab.css';
 const OverviewTab = ({ event, onEventUpdate }) => {
   const { id } = useParams();
   const [participantCount, setParticipantCount] = useState(0);
+  const [winnerCount, setWinnerCount] = useState(0);
   const [updating, setUpdating] = useState(false);
 
   useEffect(() => {
@@ -22,6 +23,15 @@ const OverviewTab = ({ event, onEventUpdate }) => {
       .eq('event_id', id);
 
     setParticipantCount(count || 0);
+
+    // Fetch winner count (all winners, active and archived)
+    const { count: winnerCount } = await supabase
+      .from('participants')
+      .select('*', { count: 'exact', head: true })
+      .eq('event_id', id)
+      .eq('is_winner', true);
+
+    setWinnerCount(winnerCount || 0);
   };
 
   const subscribeToParticipants = () => {
@@ -158,7 +168,7 @@ const OverviewTab = ({ event, onEventUpdate }) => {
             <div className="stat-label">Total Participants</div>
           </div>
           <div className="stat-card">
-            <div className="stat-value">0</div>
+            <div className="stat-value">{winnerCount}</div>
             <div className="stat-label">Winners Selected</div>
           </div>
           <div className="stat-card">

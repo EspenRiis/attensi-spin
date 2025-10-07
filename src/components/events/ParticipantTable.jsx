@@ -18,6 +18,7 @@ const ParticipantTable = () => {
   const [searchQuery, setSearchQuery] = useState('');
   const [winnerFilter, setWinnerFilter] = useState('all'); // all, winners, not-winners
   const [consentFilter, setConsentFilter] = useState('all'); // all, consented, not-consented
+  const [statusFilter, setStatusFilter] = useState('active'); // all, active, archived
   const [sortColumn, setSortColumn] = useState('created_at');
   const [sortDirection, setSortDirection] = useState('desc');
 
@@ -35,7 +36,7 @@ const ParticipantTable = () => {
 
   useEffect(() => {
     applyFilters();
-  }, [participants, searchQuery, winnerFilter, consentFilter, sortColumn, sortDirection]);
+  }, [participants, searchQuery, winnerFilter, consentFilter, statusFilter, sortColumn, sortDirection]);
 
   const fetchEventAndParticipants = async () => {
     try {
@@ -69,6 +70,7 @@ const ParticipantTable = () => {
   };
 
   const fetchParticipants = async () => {
+    // Fetch ALL participants (active + archived) for complete history
     const { data, error } = await supabase
       .from('participants')
       .select('*')
@@ -77,9 +79,44 @@ const ParticipantTable = () => {
 
     if (error) {
       console.error('Error fetching participants:', error);
-    } else {
-      setParticipants(data || []);
+      return;
     }
+
+    // Fetch winner history counts for each participant
+    const { data: historyData, error: historyError } = await supabase
+      .from('winner_history')
+      .select('participant_name, won_at')
+      .eq('event_id', id);
+
+    if (historyError) {
+      console.error('Error fetching winner history:', historyError);
+      setParticipants(data || []);
+      return;
+    }
+
+    console.log('📊 Winner history data:', historyData);
+
+    // Build map of participant name -> win count and last win
+    const winHistory = {};
+    historyData?.forEach(record => {
+      if (!winHistory[record.participant_name]) {
+        winHistory[record.participant_name] = { count: 0, lastWin: null };
+      }
+      winHistory[record.participant_name].count++;
+      const wonAt = new Date(record.won_at);
+      if (!winHistory[record.participant_name].lastWin || wonAt > winHistory[record.participant_name].lastWin) {
+        winHistory[record.participant_name].lastWin = wonAt;
+      }
+    });
+
+    // Merge win history into participants
+    const participantsWithHistory = (data || []).map(p => ({
+      ...p,
+      win_count: winHistory[p.name]?.count || 0,
+      last_win: winHistory[p.name]?.lastWin || null
+    }));
+
+    setParticipants(participantsWithHistory);
   };
 
   const subscribeToParticipants = () => {
@@ -89,6 +126,14 @@ const ParticipantTable = () => {
         event: '*',
         schema: 'public',
         table: 'participants',
+        filter: `event_id=eq.${id}`
+      }, () => {
+        fetchParticipants();
+      })
+      .on('postgres_changes', {
+        event: '*',
+        schema: 'public',
+        table: 'winner_history',
         filter: `event_id=eq.${id}`
       }, () => {
         fetchParticipants();
@@ -111,6 +156,14 @@ const ParticipantTable = () => {
         p.email?.toLowerCase().includes(query)
       );
     }
+
+    // Status filter (active/archived)
+    if (statusFilter === 'active') {
+      filtered = filtered.filter(p => p.status === 'active' || !p.status); // Include legacy records without status
+    } else if (statusFilter === 'archived') {
+      filtered = filtered.filter(p => p.status === 'archived');
+    }
+    // 'all' shows everything
 
     // Winner filter
     if (winnerFilter === 'winners') {
@@ -268,7 +321,18 @@ const ParticipantTable = () => {
             />
           </div>
 
+          {/* Status, Winner, and Consent filters */}
           <div className="filters">
+            <select
+              value={statusFilter}
+              onChange={(e) => setStatusFilter(e.target.value)}
+              className="filter-select"
+            >
+              <option value="active">Active Only</option>
+              <option value="archived">Archived Only</option>
+              <option value="all">All Status</option>
+            </select>
+
             <select
               value={winnerFilter}
               onChange={(e) => setWinnerFilter(e.target.value)}
@@ -311,12 +375,16 @@ const ParticipantTable = () => {
             <span className="stat-label">Total</span>
           </div>
           <div className="stat">
-            <span className="stat-value">{participants.filter(p => p.is_winner).length}</span>
-            <span className="stat-label">Winners</span>
+            <span className="stat-value">{participants.filter(p => p.status === 'active' || !p.status).length}</span>
+            <span className="stat-label">Active</span>
           </div>
           <div className="stat">
-            <span className="stat-value">{participants.filter(p => p.consent_marketing).length}</span>
-            <span className="stat-label">Consented</span>
+            <span className="stat-value">{participants.filter(p => p.status === 'archived').length}</span>
+            <span className="stat-label">Archived</span>
+          </div>
+          <div className="stat">
+            <span className="stat-value">{participants.filter(p => p.is_winner).length}</span>
+            <span className="stat-label">Winners</span>
           </div>
           <div className="stat">
             <span className="stat-value">{filteredParticipants.length}</span>
@@ -362,6 +430,7 @@ const ParticipantTable = () => {
                   <th>Phone</th>
                   <th className="col-center">Consent</th>
                   <th className="col-center">Winner</th>
+                  <th className="col-center" title="Total wins from history">Wins</th>
                   <th onClick={() => handleSort('created_at')} className="sortable">
                     Registered {sortColumn === 'created_at' && (sortDirection === 'asc' ? '↑' : '↓')}
                   </th>
@@ -370,7 +439,7 @@ const ParticipantTable = () => {
               </thead>
               <tbody>
                 {paginatedParticipants.map((participant) => (
-                  <tr key={participant.id}>
+                  <tr key={participant.id} style={{ opacity: participant.status === 'archived' ? 0.5 : 1 }}>
                     <td className="col-checkbox">
                       <input
                         type="checkbox"
@@ -378,7 +447,14 @@ const ParticipantTable = () => {
                         onChange={() => handleSelectOne(participant.id)}
                       />
                     </td>
-                    <td className="col-name">{participant.name || '-'}</td>
+                    <td className="col-name">
+                      {participant.name || '-'}
+                      {participant.status === 'archived' && (
+                        <span style={{ marginLeft: '8px', fontSize: '12px', color: '#9ca3af' }}>
+                          (archived)
+                        </span>
+                      )}
+                    </td>
                     <td className="col-email">{participant.email || '-'}</td>
                     <td>{participant.organization || '-'}</td>
                     <td>{participant.phone || '-'}</td>
@@ -386,7 +462,14 @@ const ParticipantTable = () => {
                       {participant.consent_marketing ? '✓' : '✗'}
                     </td>
                     <td className="col-center">
-                      {participant.is_winner ? '🏆' : '-'}
+                      {participant.is_winner ? '🏆' : (participant.win_count > 0 ? '↻' : '-')}
+                    </td>
+                    <td className="col-center" title={participant.last_win ? `Last win: ${formatDate(participant.last_win)}` : 'Never won'}>
+                      {participant.win_count > 0 ? (
+                        <span style={{ fontWeight: 'bold', color: participant.is_winner ? '#f59e0b' : '#10b981' }}>
+                          {participant.win_count}
+                        </span>
+                      ) : '-'}
                     </td>
                     <td className="col-date">{formatDate(participant.created_at)}</td>
                     <td className="col-actions">

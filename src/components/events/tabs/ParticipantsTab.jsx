@@ -13,6 +13,7 @@ const ParticipantsTab = ({ event }) => {
 
   // Filters and search
   const [searchQuery, setSearchQuery] = useState('');
+  const [statusFilter, setStatusFilter] = useState('active'); // all, active, archived
   const [winnerFilter, setWinnerFilter] = useState('all');
   const [consentFilter, setConsentFilter] = useState('all');
   const [sortColumn, setSortColumn] = useState('created_at');
@@ -32,7 +33,7 @@ const ParticipantsTab = ({ event }) => {
 
   useEffect(() => {
     applyFilters();
-  }, [participants, searchQuery, winnerFilter, consentFilter, sortColumn, sortDirection]);
+  }, [participants, searchQuery, statusFilter, winnerFilter, consentFilter, sortColumn, sortDirection]);
 
   const fetchParticipants = async () => {
     const { data, error } = await supabase
@@ -77,6 +78,14 @@ const ParticipantsTab = ({ event }) => {
         p.email?.toLowerCase().includes(query)
       );
     }
+
+    // Status filter (active/archived)
+    if (statusFilter === 'active') {
+      filtered = filtered.filter(p => p.status === 'active' || !p.status); // Include legacy records without status
+    } else if (statusFilter === 'archived') {
+      filtered = filtered.filter(p => p.status === 'archived');
+    }
+    // 'all' shows everything
 
     if (winnerFilter === 'winners') {
       filtered = filtered.filter(p => p.is_winner);
@@ -235,6 +244,16 @@ const ParticipantsTab = ({ event }) => {
 
         <div className="filters">
           <select
+            value={statusFilter}
+            onChange={(e) => setStatusFilter(e.target.value)}
+            className="filter-select"
+          >
+            <option value="active">Active Only</option>
+            <option value="archived">Archived Only</option>
+            <option value="all">All Status</option>
+          </select>
+
+          <select
             value={winnerFilter}
             onChange={(e) => setWinnerFilter(e.target.value)}
             className="filter-select"
@@ -281,12 +300,16 @@ const ParticipantsTab = ({ event }) => {
           <span className="stat-label">Total</span>
         </div>
         <div className="stat">
-          <span className="stat-value">{participants.filter(p => p.is_winner).length}</span>
-          <span className="stat-label">Winners</span>
+          <span className="stat-value">{participants.filter(p => p.status === 'active' || !p.status).length}</span>
+          <span className="stat-label">Active</span>
         </div>
         <div className="stat">
-          <span className="stat-value">{participants.filter(p => p.consent_marketing).length}</span>
-          <span className="stat-label">Consented</span>
+          <span className="stat-value">{participants.filter(p => p.status === 'archived').length}</span>
+          <span className="stat-label">Archived</span>
+        </div>
+        <div className="stat">
+          <span className="stat-value">{participants.filter(p => p.is_winner).length}</span>
+          <span className="stat-label">Winners</span>
         </div>
         <div className="stat">
           <span className="stat-value">{filteredParticipants.length}</span>
@@ -340,7 +363,7 @@ const ParticipantsTab = ({ event }) => {
             </thead>
             <tbody>
               {paginatedParticipants.map((participant) => (
-                <tr key={participant.id}>
+                <tr key={participant.id} style={{ opacity: participant.status === 'archived' ? 0.5 : 1 }}>
                   <td className="col-checkbox">
                     <input
                       type="checkbox"
@@ -348,7 +371,14 @@ const ParticipantsTab = ({ event }) => {
                       onChange={() => handleSelectOne(participant.id)}
                     />
                   </td>
-                  <td className="col-name">{participant.name || '-'}</td>
+                  <td className="col-name">
+                    {participant.name || '-'}
+                    {participant.status === 'archived' && (
+                      <span style={{ marginLeft: '8px', fontSize: '12px', color: '#9ca3af' }}>
+                        (archived)
+                      </span>
+                    )}
+                  </td>
                   <td className="col-email">{participant.email || '-'}</td>
                   <td>{participant.organization || '-'}</td>
                   <td>{participant.phone || '-'}</td>

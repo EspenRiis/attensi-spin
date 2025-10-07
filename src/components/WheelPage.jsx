@@ -3,8 +3,10 @@ import { motion, AnimatePresence } from 'framer-motion';
 import { useSearchParams } from 'react-router-dom';
 import Wheel from './Wheel';
 import ParticipantList from './ParticipantList';
+import WinnerList from './WinnerList';
 import QRCodePanel from './QRCodePanel';
 import WelcomeModal from './WelcomeModal';
+import EventWinnersModal from './EventWinnersModal';
 import WinnerModal from './WinnerModal';
 import {
   addName,
@@ -17,7 +19,10 @@ import {
   loadParticipantsFromEvent,
   markParticipantAsWinner,
   addNameToEvent,
-  removeNameFromEvent
+  removeNameFromEvent,
+  clearAllWinners,
+  restoreWinner,
+  archiveAllParticipants
 } from '../utils/storage';
 import { hasSession, createNewSession, getCurrentSessionId, clearSession } from '../utils/session';
 import { supabase } from '../lib/supabase';
@@ -30,9 +35,12 @@ const WheelPage = () => {
   const [names, setNames] = useState([]);
   const [inputName, setInputName] = useState('');
   const [showWelcomeModal, setShowWelcomeModal] = useState(false);
+  const [showEventWinnersModal, setShowEventWinnersModal] = useState(false);
+  const [existingWinnersCount, setExistingWinnersCount] = useState(0);
   const [isSpinning, setIsSpinning] = useState(false);
   const [winner, setWinner] = useState(null);
-  const [winners, setWinners] = useState([]);
+  const [winners, setWinners] = useState([]); // People who won from spinning
+  const [removedWinners, setRemovedWinners] = useState([]); // Winners removed from wheel (separate section)
   const [showToast, setShowToast] = useState(false);
   const [toastMessage, setToastMessage] = useState('');
   const [clearWinner, setClearWinner] = useState(false);
@@ -53,7 +61,7 @@ const WheelPage = () => {
       if (eventId) {
         setIsEventMode(true);
         setCurrentEventId(eventId);
-        await loadEventData(eventId);
+        await loadEventData(eventId, true); // isInitialLoad = true
       } else {
         // Free tier: session-based mode
         setIsEventMode(false);
@@ -84,10 +92,25 @@ const WheelPage = () => {
     }
   };
 
-  const loadEventData = async (evtId) => {
-    const { names: loadedNames, winners: loadedWinners } = await loadParticipantsFromEvent(evtId);
+  const loadEventData = async (evtId, isInitialLoad = false) => {
+    const { names: loadedNames, winners: dbWinners } = await loadParticipantsFromEvent(evtId);
+
+    // On initial load, check if there are existing winners
+    if (isInitialLoad && dbWinners.length > 0) {
+      // Show modal to ask user what to do with existing winners
+      setExistingWinnersCount(dbWinners.length);
+      setShowEventWinnersModal(true);
+      // Don't set names/winners yet - wait for user choice
+      return;
+    }
+
+    // Always update names (participants list)
     setNames(loadedNames);
-    setWinners(loadedWinners);
+
+    // On initial load with no winners, just load normally
+    if (isInitialLoad) {
+      setRemovedWinners([]);
+    }
   };
 
   // Separate effect for real-time subscription (handles both session and event modes)
@@ -184,6 +207,39 @@ const WheelPage = () => {
     await loadInitialData();
   };
 
+  // Event Winners Modal handlers
+  const handleKeepWinners = async () => {
+    // Load data with existing winners in the Winners section
+    const { names: loadedNames, winners: dbWinners } = await loadParticipantsFromEvent(currentEventId);
+    setNames(loadedNames); // Non-winners only
+    setRemovedWinners(dbWinners); // Winners go to separate section
+    setShowEventWinnersModal(false);
+    showToastMessage(`Loaded ${dbWinners.length} existing winners!`);
+  };
+
+  const handleStartFreshWithParticipants = async () => {
+    // Clear winner status in database
+    await clearAllWinners(currentEventId);
+    // Reload all participants (now all available to spin)
+    const { names: loadedNames } = await loadParticipantsFromEvent(currentEventId);
+    setNames(loadedNames);
+    setRemovedWinners([]);
+    setWinners([]);
+    setShowEventWinnersModal(false);
+    showToastMessage('Winner status cleared! All participants available.');
+  };
+
+  const handleStartEmpty = async () => {
+    // Archive all participants (soft delete - preserves history)
+    await archiveAllParticipants(currentEventId);
+
+    setNames([]);
+    setRemovedWinners([]);
+    setWinners([]);
+    setShowEventWinnersModal(false);
+    showToastMessage('All participants archived! Starting fresh.');
+  };
+
   const showToastMessage = (message) => {
     setToastMessage(message);
     setShowToast(true);
@@ -216,16 +272,15 @@ const WheelPage = () => {
       : await removeName(nameToRemove);
 
     if (result.success) {
-      // Immediately update local state
+      // Immediately update local state - remove from participants list
       setNames(prevNames => prevNames.filter(name => name !== nameToRemove));
 
-      // Also remove from winners if present
-      const newWinners = winners.filter(name => name !== nameToRemove);
-      setWinners(newWinners);
+      // DON'T remove from winners array - keep them for "Remove All Winners" button
+      // Winners will be moved to removedWinners when that button is clicked
 
-      // Only save to localStorage in session mode
+      // Save current winners to localStorage in session mode
       if (!isEventMode) {
-        saveWinners(newWinners);
+        saveWinners(winners);
       }
 
       showToastMessage(`${nameToRemove} removed!`);
@@ -244,7 +299,7 @@ const WheelPage = () => {
 
   // CRITICAL FIX: Wrap in useCallback to prevent infinite loop
   // This ensures the function reference stays stable across renders
-  const handleSpinComplete = useCallback((winnerName) => {
+  const handleSpinComplete = useCallback(async (winnerName) => {
     setWinner(winnerName);
     setIsSpinning(false);
 
@@ -253,12 +308,8 @@ const WheelPage = () => {
       if (!prevWinners.includes(winnerName)) {
         const newWinners = [...prevWinners, winnerName];
 
-        // Save winner based on mode
-        if (isEventMode && currentEventId) {
-          // Event mode: Save to database
-          markParticipantAsWinner(currentEventId, winnerName);
-        } else {
-          // Session mode: Save to localStorage
+        // Save to localStorage in session mode
+        if (!isEventMode) {
           saveWinners(newWinners);
         }
 
@@ -266,6 +317,12 @@ const WheelPage = () => {
       }
       return prevWinners;
     });
+
+    // Mark as winner in database immediately (for dashboard visibility)
+    // But keep them in participants list until "Remove All Winners" is clicked
+    if (isEventMode && currentEventId) {
+      await markParticipantAsWinner(currentEventId, winnerName);
+    }
   }, [isEventMode, currentEventId]);
 
   const handleSpinAgain = () => {
@@ -294,16 +351,18 @@ const WheelPage = () => {
   };
 
   const handleRemoveAllWinners = async () => {
-    // Remove each winner individually (works for both modes)
-    for (const winner of winners) {
-      if (isEventMode) {
-        await removeNameFromEvent(currentEventId, winner);
-      } else {
+    // In event mode, winners are already marked in DB when they won
+    // In session mode, we need to remove them from the database
+    if (!isEventMode) {
+      for (const winner of winners) {
         await removeName(winner);
       }
     }
 
-    // Update state
+    // Move winners to removedWinners list (shown in separate Winners section)
+    setRemovedWinners(prev => [...prev, ...winners]);
+
+    // Update state - remove winners from names list
     const newNames = names.filter(name => !winners.includes(name));
     setNames(newNames);
     setWinners([]);
@@ -315,6 +374,32 @@ const WheelPage = () => {
     showToastMessage('All winners removed from wheel!');
   };
 
+  const handleRestoreWinner = async (name) => {
+    if (isEventMode) {
+      // Restore in database (removes is_winner flag)
+      await restoreWinner(currentEventId, name);
+    }
+
+    // Remove from removedWinners list
+    setRemovedWinners(prev => prev.filter(n => n !== name));
+
+    showToastMessage(`${name} restored to wheel!`);
+  };
+
+  const handleRestoreAllWinners = async () => {
+    if (isEventMode) {
+      // Restore all winners in database
+      for (const winner of removedWinners) {
+        await restoreWinner(currentEventId, winner);
+      }
+    }
+
+    // Clear the removedWinners list
+    setRemovedWinners([]);
+
+    showToastMessage('All winners restored to wheel!');
+  };
+
   return (
     <div className="wheel-page">
       <AnimatePresence>
@@ -322,6 +407,17 @@ const WheelPage = () => {
           <WelcomeModal
             onContinue={handleContinue}
             onStartFresh={handleStartFresh}
+          />
+        )}
+      </AnimatePresence>
+
+      <AnimatePresence>
+        {showEventWinnersModal && (
+          <EventWinnersModal
+            winnersCount={existingWinnersCount}
+            onKeepWinners={handleKeepWinners}
+            onStartFresh={handleStartFreshWithParticipants}
+            onStartEmpty={handleStartEmpty}
           />
         )}
       </AnimatePresence>
@@ -388,6 +484,14 @@ const WheelPage = () => {
             onRemove={handleRemoveName}
             winners={winners}
           />
+
+          {removedWinners.length > 0 && (
+            <WinnerList
+              winners={removedWinners}
+              onRestore={handleRestoreWinner}
+              onRestoreAll={handleRestoreAllWinners}
+            />
+          )}
 
           {winners.length > 0 && (
             <motion.div
