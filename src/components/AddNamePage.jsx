@@ -2,6 +2,7 @@ import { useState, useEffect } from 'react';
 import { motion } from 'framer-motion';
 import { useSearchParams } from 'react-router-dom';
 import { addName } from '../utils/storage';
+import { checkRateLimit, RATE_LIMITS } from '../utils/rateLimiter';
 import './AddNamePage.css';
 
 const AddNamePage = () => {
@@ -26,6 +27,18 @@ const AddNamePage = () => {
 
     if (!sessionId) {
       setError('Invalid session. Please scan the QR code again.');
+      return;
+    }
+
+    // Rate limiting check
+    const rateLimitCheck = checkRateLimit(
+      'add_participant',
+      RATE_LIMITS.ADD_PARTICIPANT.maxAttempts,
+      RATE_LIMITS.ADD_PARTICIPANT.windowMs
+    );
+
+    if (!rateLimitCheck.allowed) {
+      setError(rateLimitCheck.message);
       return;
     }
 

@@ -25,6 +25,7 @@ import {
   archiveAllParticipants
 } from '../utils/storage';
 import { hasSession, createNewSession, getCurrentSessionId, clearSession } from '../utils/session';
+import { checkRateLimit, RATE_LIMITS } from '../utils/rateLimiter';
 import { supabase } from '../lib/supabase';
 import './WheelPage.css';
 
@@ -266,6 +267,19 @@ const WheelPage = () => {
 
   const handleAddName = async (e) => {
     e.preventDefault();
+
+    // Rate limiting check
+    const rateLimitCheck = checkRateLimit(
+      'add_participant',
+      RATE_LIMITS.ADD_PARTICIPANT.maxAttempts,
+      RATE_LIMITS.ADD_PARTICIPANT.windowMs
+    );
+
+    if (!rateLimitCheck.allowed) {
+      showToastMessage(rateLimitCheck.message);
+      return;
+    }
+
     if (inputName.trim() && !names.includes(inputName.trim())) {
       const result = isEventMode
         ? await addNameToEvent(currentEventId, inputName.trim())
@@ -308,6 +322,18 @@ const WheelPage = () => {
   };
 
   const handleSpin = () => {
+    // Rate limiting check
+    const rateLimitCheck = checkRateLimit(
+      'spin_wheel',
+      RATE_LIMITS.SPIN_WHEEL.maxAttempts,
+      RATE_LIMITS.SPIN_WHEEL.windowMs
+    );
+
+    if (!rateLimitCheck.allowed) {
+      showToastMessage(rateLimitCheck.message);
+      return;
+    }
+
     if (names.length < 2) {
       showToastMessage('Add at least 2 participants to spin!');
       return;

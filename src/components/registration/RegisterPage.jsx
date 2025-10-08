@@ -2,6 +2,7 @@ import { useState, useEffect } from 'react';
 import { motion } from 'framer-motion';
 import { useSearchParams, useNavigate } from 'react-router-dom';
 import { supabase } from '../../lib/supabase';
+import { checkRateLimit, RATE_LIMITS } from '../../utils/rateLimiter';
 import './RegisterPage.css';
 
 const RegisterPage = () => {
@@ -117,6 +118,18 @@ const RegisterPage = () => {
   const handleSubmit = async (e) => {
     e.preventDefault();
     setError('');
+
+    // Rate limiting check
+    const rateLimitCheck = checkRateLimit(
+      'registration',
+      RATE_LIMITS.REGISTRATION.maxAttempts,
+      RATE_LIMITS.REGISTRATION.windowMs
+    );
+
+    if (!rateLimitCheck.allowed) {
+      setError(rateLimitCheck.message);
+      return;
+    }
 
     const validationError = validateForm();
     if (validationError) {
