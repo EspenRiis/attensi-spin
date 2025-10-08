@@ -67,7 +67,10 @@ const EventLayout = () => {
   if (loading) {
     return (
       <div className="event-layout-page">
-        <div className="loading-state">Loading event...</div>
+        <div className="loading-state">
+          <div className="spinner"></div>
+          <p>Loading event...</p>
+        </div>
       </div>
     );
   }

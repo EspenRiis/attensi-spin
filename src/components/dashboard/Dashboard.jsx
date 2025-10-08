@@ -96,7 +96,10 @@ const Dashboard = () => {
     return (
       <div className="dashboard-page">
         <div className="dashboard-container">
-          <div className="loading-state">Loading your events...</div>
+          <div className="loading-state">
+            <div className="spinner"></div>
+            <p>Loading your events...</p>
+          </div>
         </div>
       </div>
     );

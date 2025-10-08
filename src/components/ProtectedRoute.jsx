@@ -28,12 +28,30 @@ const ProtectedRoute = ({ children }) => {
     return (
       <div style={{
         display: 'flex',
+        flexDirection: 'column',
         justifyContent: 'center',
         alignItems: 'center',
         height: '100vh',
-        background: 'linear-gradient(135deg, #667eea 0%, #764ba2 100%)'
+        background: 'transparent'
       }}>
-        <div style={{ color: 'white', fontSize: '18px' }}>Loading...</div>
+        <div style={{
+          width: '50px',
+          height: '50px',
+          border: '4px solid rgba(0, 217, 255, 0.2)',
+          borderTopColor: '#00D9FF',
+          borderRadius: '50%',
+          animation: 'spin 0.8s linear infinite'
+        }}></div>
+        <p style={{
+          color: '#E0E0E0',
+          fontSize: '16px',
+          marginTop: '20px'
+        }}>Loading...</p>
+        <style>{`
+          @keyframes spin {
+            to { transform: rotate(360deg); }
+          }
+        `}</style>
       </div>
     );
   }
