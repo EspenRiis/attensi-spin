@@ -321,6 +321,14 @@ const WheelPage = () => {
     setWinner(winnerName);
     setIsSpinning(false);
 
+    // Increment global spin counter
+    try {
+      await supabase.rpc('increment_spin_counter');
+    } catch (error) {
+      console.error('Failed to increment spin counter:', error);
+      // Non-critical error, don't block the flow
+    }
+
     // Add to winners list
     setWinners(prevWinners => {
       if (!prevWinners.includes(winnerName)) {
