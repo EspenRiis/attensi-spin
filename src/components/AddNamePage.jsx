@@ -44,8 +44,8 @@ const AddNamePage = () => {
         }, 3000);
       } else {
         // Check if error is due to duplicate name
-        if (result.error.includes('duplicate') || result.error.includes('unique')) {
-          setError('This name is already in the list!');
+        if (result.error.includes('already in the list') || result.error.includes('duplicate') || result.error.includes('unique')) {
+          setError('Name already in the wheel. Please use a variation (e.g., "John S.")');
         } else {
           setError('Error adding name. Please try again.');
         }

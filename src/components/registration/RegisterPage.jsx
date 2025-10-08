@@ -127,6 +127,22 @@ const RegisterPage = () => {
     setSubmitting(true);
 
     try {
+      // Check if name already exists using secure function
+      const { data: isDuplicate, error: checkError } = await supabase
+        .rpc('check_duplicate_name', {
+          p_name: formData.name.trim(),
+          p_event_id: eventId,
+          p_session_id: null
+        });
+
+      if (checkError) {
+        throw checkError;
+      }
+
+      if (isDuplicate) {
+        throw new Error('Name already in the wheel. Please use a variation (e.g., "John S.")');
+      }
+
       const { error: insertError } = await supabase
         .from('participants')
         .insert([

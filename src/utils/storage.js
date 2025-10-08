@@ -23,6 +23,20 @@ export const addName = async (name, sessionId = null) => {
       throw new Error('No session ID available');
     }
 
+    // Check if name already exists using secure function
+    const { data: isDuplicate, error: checkError } = await supabase
+      .rpc('check_duplicate_name', {
+        p_name: name.trim(),
+        p_event_id: null,
+        p_session_id: session
+      });
+
+    if (checkError) throw checkError;
+
+    if (isDuplicate) {
+      throw new Error('This name is already in the list!');
+    }
+
     const { data, error } = await supabase
       .from('participants')
       .insert([{ name: name.trim(), session_id: session }])
@@ -268,6 +282,20 @@ export const restoreWinner = async (eventId, name) => {
 // Add a name to an event (logged-in user adding manually)
 export const addNameToEvent = async (eventId, name) => {
   try {
+    // Check if name already exists using secure function
+    const { data: isDuplicate, error: checkError } = await supabase
+      .rpc('check_duplicate_name', {
+        p_name: name.trim(),
+        p_event_id: eventId,
+        p_session_id: null
+      });
+
+    if (checkError) throw checkError;
+
+    if (isDuplicate) {
+      throw new Error('Name already in the wheel!');
+    }
+
     const { data, error } = await supabase
       .from('participants')
       .insert([{ name: name.trim(), event_id: eventId }])
