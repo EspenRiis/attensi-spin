@@ -1,6 +1,6 @@
 import { useState, useEffect } from 'react';
 import { motion } from 'framer-motion';
-import { useNavigate, useSearchParams } from 'react-router-dom';
+import { useSearchParams } from 'react-router-dom';
 import { addName } from '../utils/storage';
 import './AddNamePage.css';
 
@@ -9,7 +9,6 @@ const AddNamePage = () => {
   const [submitted, setSubmitted] = useState(false);
   const [error, setError] = useState('');
   const [sessionId, setSessionId] = useState(null);
-  const navigate = useNavigate();
   const [searchParams] = useSearchParams();
 
   useEffect(() => {
@@ -63,7 +62,7 @@ const AddNamePage = () => {
           transition={{ duration: 0.5 }}
         >
           <div className="card-header">
-            <h1>Attensi Spin</h1>
+            <h1>Name Roulette</h1>
             <p>Join the wheel!</p>
           </div>
 
@@ -95,15 +94,7 @@ const AddNamePage = () => {
               <p className="name-display">{name}</p>
             </motion.div>
           )}
-
-          <button onClick={() => navigate('/')} className="back-button">
-            ← Back to Wheel
-          </button>
         </motion.div>
-
-        <footer className="mobile-footer">
-          <p>Powered by Attensi</p>
-        </footer>
       </div>
     </div>
   );

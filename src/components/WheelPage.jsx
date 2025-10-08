@@ -48,6 +48,7 @@ const WheelPage = () => {
   // Event mode state
   const [isEventMode, setIsEventMode] = useState(false);
   const [currentEventId, setCurrentEventId] = useState(null);
+  const [currentEvent, setCurrentEvent] = useState(null);
   const [user, setUser] = useState(null);
 
   // Initialize: Check auth state and eventId parameter
@@ -93,6 +94,23 @@ const WheelPage = () => {
   };
 
   const loadEventData = async (evtId, isInitialLoad = false) => {
+    // Fetch event details if initial load
+    if (isInitialLoad) {
+      try {
+        const { data: eventData, error: eventError } = await supabase
+          .from('events')
+          .select('*')
+          .eq('id', evtId)
+          .single();
+
+        if (!eventError && eventData) {
+          setCurrentEvent(eventData);
+        }
+      } catch (err) {
+        console.error('Error fetching event details:', err);
+      }
+    }
+
     const { names: loadedNames, winners: dbWinners } = await loadParticipantsFromEvent(evtId);
 
     // On initial load, check if there are existing winners
@@ -452,7 +470,7 @@ const WheelPage = () => {
           animate={{ opacity: 1, y: 0 }}
           transition={{ duration: 0.6 }}
         >
-          Name Roulette
+          {isEventMode && currentEvent ? currentEvent.name : 'Name Roulette'}
         </motion.h1>
       </header>
 

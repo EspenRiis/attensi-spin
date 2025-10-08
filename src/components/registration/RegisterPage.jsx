@@ -205,7 +205,7 @@ const RegisterPage = () => {
 
   if (success) {
     return (
-      <div className="register-page" style={{ background: event.branding_config.primary_color || '#667eea' }}>
+      <div className="register-page">
         <div className="register-container">
           <motion.div
             className="success-card"
@@ -226,7 +226,7 @@ const RegisterPage = () => {
   const primaryColor = event.branding_config.primary_color || '#667eea';
 
   return (
-    <div className="register-page" style={{ background: `linear-gradient(135deg, ${primaryColor} 0%, #764ba2 100%)` }}>
+    <div className="register-page">
       <div className="register-container">
         <motion.div
           className="register-card"
@@ -382,12 +382,6 @@ const RegisterPage = () => {
               {submitting ? 'Registering...' : 'Register'}
             </button>
           </form>
-
-          {event.branding_config.show_attensi_branding && (
-            <div className="powered-by">
-              <p>Powered by Attensi</p>
-            </div>
-          )}
         </motion.div>
       </div>
     </div>

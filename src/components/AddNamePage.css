@@ -4,7 +4,11 @@
   align-items: center;
   justify-content: center;
   padding: 20px;
-  background: linear-gradient(135deg, var(--navy-dark) 0%, #0d1d35 100%);
+  background: var(--navy-dark);
+  background-image:
+    radial-gradient(circle at 10% 20%, rgba(0, 217, 255, 0.15) 0%, transparent 50%),
+    radial-gradient(circle at 90% 80%, rgba(0, 255, 136, 0.15) 0%, transparent 50%),
+    radial-gradient(circle at 50% 50%, rgba(0, 217, 255, 0.05) 0%, transparent 80%);
 }
 
 .add-name-container {
@@ -27,9 +31,11 @@
 
 .card-header h1 {
   font-size: 42px;
-  color: var(--cyan-bright);
+  color: #FFFFFF;
   margin: 0 0 10px 0;
-  text-shadow: 0 0 20px rgba(0, 217, 255, 0.6);
+  text-shadow: 0 0 30px rgba(0, 217, 255, 0.8), 0 2px 10px rgba(0, 0, 0, 0.5);
+  font-weight: 700;
+  letter-spacing: 1px;
 }
 
 .card-header p {
@@ -122,29 +128,8 @@
   border: 2px solid rgba(0, 217, 255, 0.3);
 }
 
-.back-button {
-  width: 100%;
-  padding: 15px;
-  background: rgba(255, 255, 255, 0.1);
-  color: var(--white);
-  border: 2px solid rgba(255, 255, 255, 0.3);
-  border-radius: 12px;
-  font-size: 16px;
-  font-weight: 600;
-  transition: all 0.3s ease;
-}
-
-.back-button:hover {
-  background: rgba(255, 255, 255, 0.15);
-  border-color: var(--cyan-bright);
-}
-
-.mobile-footer {
-  text-align: center;
+.add-name-page .app-footer {
   margin-top: 30px;
-  color: var(--gray-light);
-  font-size: 14px;
-  opacity: 0.7;
 }
 
 @media (max-width: 480px) {
