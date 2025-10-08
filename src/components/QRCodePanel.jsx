@@ -3,12 +3,15 @@ import { motion } from 'framer-motion';
 import { getCurrentSessionId } from '../utils/session';
 import './QRCodePanel.css';
 
-const QRCodePanel = () => {
+const QRCodePanel = ({ eventId = null }) => {
   // Use the actual URL the page was loaded from
   // This will be localhost when accessed via localhost, or the IP when accessed via IP
   const currentUrl = window.location.origin;
-  const sessionId = getCurrentSessionId();
-  const addNameUrl = `${currentUrl}/add-name?session=${sessionId}`;
+
+  // Generate URL based on mode (event vs session)
+  const registrationUrl = eventId
+    ? `${currentUrl}/register?event=${eventId}`
+    : `${currentUrl}/add-name?session=${getCurrentSessionId()}`;
 
   return (
     <motion.div
@@ -20,7 +23,7 @@ const QRCodePanel = () => {
       <h3>Scan to Join</h3>
       <div className="qr-code-wrapper">
         <QRCodeSVG
-          value={addNameUrl}
+          value={registrationUrl}
           size={180}
           level="H"
           includeMargin={true}
@@ -32,7 +35,7 @@ const QRCodePanel = () => {
         📱 Scan with your phone to add your name
       </p>
       <div className="qr-url">
-        <code>{addNameUrl}</code>
+        <code>{registrationUrl}</code>
       </div>
     </motion.div>
   );

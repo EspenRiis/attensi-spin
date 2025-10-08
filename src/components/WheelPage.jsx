@@ -529,7 +529,7 @@ const WheelPage = () => {
         </div>
 
         <div className="right-section">
-          <QRCodePanel />
+          <QRCodePanel eventId={isEventMode ? currentEventId : null} />
         </div>
       </div>
     </div>
