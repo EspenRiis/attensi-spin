@@ -9,6 +9,7 @@ const Wheel = ({ names, onSpinComplete, isSpinning, clearWinner }) => {
   const [targetRotation, setTargetRotation] = useState(0);
   const [winnerIndex, setWinnerIndex] = useState(null);
   const [isAnimating, setIsAnimating] = useState(false);
+  const [spinTrigger, setSpinTrigger] = useState(0);
   const hasCalculatedWinner = useRef(false);
   const onSpinCompleteRef = useRef(onSpinComplete);
   const currentAnimationTarget = useRef(null);
@@ -230,12 +231,17 @@ const Wheel = ({ names, onSpinComplete, isSpinning, clearWinner }) => {
 
     setTargetRotation(newTarget);
     currentAnimationTarget.current = newTarget;
+    // Increment spin trigger to force animation effect to run
+    setSpinTrigger(prev => prev + 1);
   };
 
   useEffect(() => {
-    if (targetRotation !== rotation &&
+    // Only check spinTrigger to start animation, ignore rotation changes during animation
+    if (spinTrigger > 0 &&
+        targetRotation !== rotation &&
         Math.abs(targetRotation - rotation) > 0.1 &&
-        currentAnimationTarget.current === targetRotation) {
+        currentAnimationTarget.current === targetRotation &&
+        !isAnimating) {
 
       setIsAnimating(true);
 
@@ -311,7 +317,7 @@ const Wheel = ({ names, onSpinComplete, isSpinning, clearWinner }) => {
 
       animate();
     }
-  }, [targetRotation, rotation, names]);
+  }, [targetRotation, rotation, names, spinTrigger]);
 
   const handleCanvasClick = (event) => {
     if (isAnimating || isSpinning) return;
