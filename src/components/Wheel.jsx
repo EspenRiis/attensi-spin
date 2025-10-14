@@ -167,7 +167,7 @@ const Wheel = ({ names, onSpinComplete, isSpinning, clearWinner }) => {
       ctx.fillStyle = colors[index];
       ctx.fill();
 
-      // Only show golden glow after animation is complete
+      // Show golden glow only for the most recent winner (after animation completes)
       if (winnerIndex === index && !isAnimating) {
         ctx.strokeStyle = '#FFD700';
         ctx.lineWidth = 8;

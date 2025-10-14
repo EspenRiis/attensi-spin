@@ -174,8 +174,8 @@ export const loadParticipantsFromEvent = async (eventId) => {
 
     if (error) throw error;
     return {
-      // All active participants (including winners) - winners stay visible in participants list
-      names: data.map(item => item.name),
+      // Only non-winners are available for the wheel
+      names: data.filter(item => !item.is_winner).map(item => item.name),
       // Winners from database (those marked is_winner = true)
       winners: data.filter(item => item.is_winner).map(item => item.name)
     };

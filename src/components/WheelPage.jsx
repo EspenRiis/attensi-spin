@@ -123,11 +123,13 @@ const WheelPage = () => {
       return;
     }
 
-    // Always update names (participants list)
+    // Always update names (participants list - non-winners only)
     setNames(loadedNames);
 
-    // On initial load with no winners, just load normally
-    if (isInitialLoad) {
+    // Update removedWinners list with current database winners (for real-time updates)
+    if (!isInitialLoad) {
+      setRemovedWinners(dbWinners);
+    } else {
       setRemovedWinners([]);
     }
   };
@@ -355,7 +357,7 @@ const WheelPage = () => {
       // Non-critical error, don't block the flow
     }
 
-    // Add to winners list
+    // Add to winners list (for tracking and showing badge)
     setWinners(prevWinners => {
       if (!prevWinners.includes(winnerName)) {
         const newWinners = [...prevWinners, winnerName];
@@ -370,21 +372,40 @@ const WheelPage = () => {
       return prevWinners;
     });
 
-    // Mark as winner in database immediately (for dashboard visibility)
-    // But keep them in participants list until "Remove All Winners" is clicked
-    if (isEventMode && currentEventId) {
-      await markParticipantAsWinner(currentEventId, winnerName);
-    }
+    // NOTE: Don't mark as winner in database yet
+    // Winner stays on wheel until "Remove Winner" button is clicked
   }, [isEventMode, currentEventId]);
 
   const handleSpinAgain = () => {
     setWinner(null);
   };
 
-  const handleRemoveWinner = () => {
+  const handleRemoveWinner = async () => {
     if (winner) {
-      handleRemoveName(winner);
+      // Mark as winner in database for event mode (dashboard visibility)
+      if (isEventMode && currentEventId) {
+        await markParticipantAsWinner(currentEventId, winner);
+      } else {
+        // Session mode: remove from database
+        await removeName(winner);
+      }
+
+      // Move winner to removedWinners list (shown in Winners section)
+      setRemovedWinners(prev => [...prev, winner]);
+
+      // Remove from participants list
+      setNames(prevNames => prevNames.filter(name => name !== winner));
+
+      // Remove from winners tracking array
+      setWinners(prevWinners => prevWinners.filter(name => name !== winner));
+
+      // Save updated winners in session mode
+      if (!isEventMode) {
+        saveWinners(winners.filter(name => name !== winner));
+      }
+
       setWinner(null);
+      showToastMessage(`${winner} removed from wheel!`);
     }
   };
 
@@ -430,6 +451,17 @@ const WheelPage = () => {
     if (isEventMode) {
       // Restore in database (removes is_winner flag)
       await restoreWinner(currentEventId, name);
+      // Real-time subscription will handle adding back to names list
+    } else {
+      // Session mode: re-add participant to database
+      const result = await addName(name);
+      if (result.success) {
+        // Optimistically update local state
+        setNames(prevNames => [...prevNames, name]);
+      } else {
+        showToastMessage('Error restoring participant!');
+        return;
+      }
     }
 
     // Remove from removedWinners list
@@ -443,6 +475,20 @@ const WheelPage = () => {
       // Restore all winners in database
       for (const winner of removedWinners) {
         await restoreWinner(currentEventId, winner);
+      }
+      // Real-time subscription will handle adding back to names list
+    } else {
+      // Session mode: re-add all participants to database
+      const restoredNames = [];
+      for (const winner of removedWinners) {
+        const result = await addName(winner);
+        if (result.success) {
+          restoredNames.push(winner);
+        }
+      }
+      // Optimistically update local state with successfully restored names
+      if (restoredNames.length > 0) {
+        setNames(prevNames => [...prevNames, ...restoredNames]);
       }
     }
 
