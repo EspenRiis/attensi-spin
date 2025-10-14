@@ -1,5 +1,6 @@
 import { useRef, useEffect, useState } from 'react';
 import { motion } from 'framer-motion';
+import confetti from 'canvas-confetti';
 import { generateSegmentColors } from '../utils/colors';
 import './Wheel.css';
 
@@ -10,6 +11,7 @@ const Wheel = ({ names, onSpinComplete, isSpinning, clearWinner }) => {
   const [winnerIndex, setWinnerIndex] = useState(null);
   const [isAnimating, setIsAnimating] = useState(false);
   const [spinTrigger, setSpinTrigger] = useState(0);
+  const [pointerBounce, setPointerBounce] = useState(false);
   const hasCalculatedWinner = useRef(false);
   const onSpinCompleteRef = useRef(onSpinComplete);
   const currentAnimationTarget = useRef(null);
@@ -245,18 +247,66 @@ const Wheel = ({ names, onSpinComplete, isSpinning, clearWinner }) => {
 
       setIsAnimating(true);
 
-      const duration = 10000;
+      const mainDuration = 10000; // Main spin duration
+      const settlingDuration = 800; // Settling animation duration
+      const totalDuration = mainDuration + settlingDuration;
       const startTime = Date.now();
       const startRotation = rotation;
       const deltaRotation = targetRotation - startRotation;
+      let winnerEffectsTriggered = false;
 
       const animate = () => {
         const now = Date.now();
         const elapsed = now - startTime;
-        const progress = Math.min(elapsed / duration, 1);
+        const progress = Math.min(elapsed / totalDuration, 1);
 
-        const easeOut = 1 - Math.pow(1 - progress, 7);
-        const currentRotation = startRotation + deltaRotation * easeOut;
+        let currentRotation;
+
+        if (elapsed < mainDuration) {
+          // Main spin phase
+          const mainProgress = elapsed / mainDuration;
+          const easeOut = 1 - Math.pow(1 - mainProgress, 7);
+          currentRotation = startRotation + deltaRotation * easeOut;
+
+          // Trigger winner effects while wheel is still visibly moving (at 98%)
+          if (mainProgress >= 0.98 && !winnerEffectsTriggered) {
+            winnerEffectsTriggered = true;
+
+            if (!hasCalculatedWinner.current) {
+              hasCalculatedWinner.current = true;
+
+              const finalNormalized = ((targetRotation % 360) + 360) % 360;
+              const anglePerSegment = 360 / names.length;
+              const segmentsRotated = finalNormalized / anglePerSegment;
+              const calculatedWinnerIndex = (names.length - Math.floor(segmentsRotated) - 1 + names.length) % names.length;
+
+              setWinnerIndex(calculatedWinnerIndex);
+
+              // Trigger pointer bounce animation
+              setPointerBounce(true);
+              setTimeout(() => setPointerBounce(false), 600);
+
+              // Trigger confetti burst from wheel center
+              confetti({
+                particleCount: 50,
+                spread: 60,
+                origin: { y: 0.5 },
+                colors: ['#FFD700', '#00D9FF', '#00FF88', '#FFFFFF'],
+                disableForReducedMotion: true
+              });
+            }
+          }
+        } else {
+          // Settling phase - visible bounces (with winner already glowing)
+          const settlingProgress = (elapsed - mainDuration) / settlingDuration;
+          const settlingAmount = 8; // degrees of bounce - increased from 3 to 8 for visibility
+
+          // Damped oscillation - creates realistic settling effect
+          const dampingFactor = Math.pow(1 - settlingProgress, 2);
+          const oscillation = Math.sin(settlingProgress * Math.PI * 3) * settlingAmount * dampingFactor;
+
+          currentRotation = targetRotation + oscillation;
+        }
 
         setRotation(currentRotation);
 
@@ -267,9 +317,8 @@ const Wheel = ({ names, onSpinComplete, isSpinning, clearWinner }) => {
           setRotation(targetRotation);
           setIsAnimating(false);
 
-          if (!hasCalculatedWinner.current) {
-            hasCalculatedWinner.current = true;
-
+          // Calculate final winner for modal
+          if (hasCalculatedWinner.current) {
             const finalNormalized = ((targetRotation % 360) + 360) % 360;
             const anglePerSegment = 360 / names.length;
 
@@ -281,12 +330,7 @@ const Wheel = ({ names, onSpinComplete, isSpinning, clearWinner }) => {
             console.log('📊 Final Rotation:', finalNormalized.toFixed(2) + '°');
             console.log('📊 Segments:', names.length, '| Angle per segment:', anglePerSegment.toFixed(2) + '°\n');
 
-            // The pointer is at 0° in screen space
-            // Segments are drawn starting at -90° + rotation
-            // To find which segment is at the pointer, we need to find which segment's range includes 0°
-
             // Calculate which segment is at the top pointer after rotation
-            // Segments rotate clockwise, so we work backwards from rotation amount
             const segmentsRotated = finalNormalized / anglePerSegment;
             const calculatedWinnerIndex = (names.length - Math.floor(segmentsRotated) - 1 + names.length) % names.length;
 
@@ -306,11 +350,10 @@ const Wheel = ({ names, onSpinComplete, isSpinning, clearWinner }) => {
 
             console.log('\n' + '═'.repeat(60) + '\n');
 
-            setWinnerIndex(calculatedWinnerIndex);
-
+            // Show winner modal with reduced delay
             setTimeout(() => {
               onSpinCompleteRef.current(names[calculatedWinnerIndex]);
-            }, 500);
+            }, 200);
           }
         }
       };
@@ -344,7 +387,7 @@ const Wheel = ({ names, onSpinComplete, isSpinning, clearWinner }) => {
 
   return (
     <div className="wheel-container">
-      <div className="wheel-pointer">▼</div>
+      <div className={`wheel-pointer ${pointerBounce ? 'pointer-bounce-winner' : ''}`}>▼</div>
       <canvas
         ref={canvasRef}
         width={500}
