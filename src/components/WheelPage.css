@@ -161,12 +161,14 @@
   right: 20px;
   background: linear-gradient(135deg, var(--cyan-bright), #0088FF);
   color: var(--navy-dark);
-  padding: 15px 25px;
-  border-radius: 10px;
+  padding: 10px 18px;
+  border-radius: 8px;
   font-weight: 600;
+  font-size: 14px;
   box-shadow: 0 5px 20px rgba(0, 217, 255, 0.5);
   z-index: 10000;
   isolation: isolate;
+  max-width: 300px;
 }
 
 /* Responsive Design */

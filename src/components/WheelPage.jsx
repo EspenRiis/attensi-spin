@@ -5,8 +5,9 @@ import Wheel from './Wheel';
 import ParticipantList from './ParticipantList';
 import WinnerList from './WinnerList';
 import QRCodePanel from './QRCodePanel';
-import WelcomeModal from './WelcomeModal';
-import EventWinnersModal from './EventWinnersModal';
+import SessionRestoreModal from './shared/SessionRestoreModal';
+import EventDataModal from './shared/EventDataModal';
+import ParticipantImportModal from './shared/ParticipantImportModal';
 import WinnerModal from './WinnerModal';
 import {
   addName,
@@ -17,6 +18,7 @@ import {
   loadWinners,
   hasStoredData,
   loadParticipantsFromEvent,
+  loadParticipantsWithIds,
   markParticipantAsWinner,
   addNameToEvent,
   removeNameFromEvent,
@@ -37,7 +39,9 @@ const WheelPage = () => {
   const [inputName, setInputName] = useState('');
   const [showWelcomeModal, setShowWelcomeModal] = useState(false);
   const [showEventWinnersModal, setShowEventWinnersModal] = useState(false);
+  const [showParticipantImportModal, setShowParticipantImportModal] = useState(false);
   const [existingWinnersCount, setExistingWinnersCount] = useState(0);
+  const [squadParticipantCount, setSquadParticipantCount] = useState(0);
   const [isSpinning, setIsSpinning] = useState(false);
   const [winner, setWinner] = useState(null);
   const [winners, setWinners] = useState([]); // People who won from spinning
@@ -84,13 +88,25 @@ const WheelPage = () => {
         // Show modal to continue or start fresh - DON'T load data yet
         setShowWelcomeModal(true);
       } else {
-        // Has session but no data, just load it
+        // Has session but no data, load it and check for imports
         await loadInitialData();
+        await checkForSquadParticipants();
       }
     } else {
       // No session, create a new one
       createNewSession();
       await loadInitialData();
+    }
+  };
+
+  const checkForSquadParticipants = async () => {
+    // Check if Name Roulette is empty AND Squad Scramble has participants
+    if (names.length === 0) {
+      const squadParticipants = await loadParticipantsWithIds();
+      if (squadParticipants.length > 0) {
+        setSquadParticipantCount(squadParticipants.length);
+        setShowParticipantImportModal(true);
+      }
     }
   };
 
@@ -204,6 +220,31 @@ const WheelPage = () => {
 
     const savedWinners = loadWinners();
     setWinners(savedWinners);
+  };
+
+  // Participant Import Modal Handlers
+  const handleImportFromSquad = async () => {
+    setShowParticipantImportModal(false);
+    // Participants are already loaded from the same session, just close modal
+    showToastMessage(`Imported ${squadParticipantCount} participants from Squad Scramble!`);
+  };
+
+  const handleStartEmptyWheel = async () => {
+    setShowParticipantImportModal(false);
+    // Clear any existing participants
+    await clearNames();
+    setNames([]);
+    showToastMessage('Ready to add participants manually!');
+  };
+
+  const handleClearAllParticipants = async () => {
+    if (window.confirm(`Clear all ${names.length} participants?`)) {
+      await clearNames();
+      setNames([]);
+      setWinners([]);
+      setRemovedWinners([]);
+      showToastMessage('All participants cleared!');
+    }
   };
 
   const handleContinue = async () => {
@@ -502,7 +543,14 @@ const WheelPage = () => {
     <div className="wheel-page">
       <AnimatePresence>
         {showWelcomeModal && (
-          <WelcomeModal
+          <SessionRestoreModal
+            title="Welcome Back!"
+            description="Would you like to continue from an earlier session?"
+            icon="🎯"
+            continueLabel="Continue"
+            continueSubtitle="Load saved data"
+            freshLabel="Start Fresh"
+            freshSubtitle="Clear all data"
             onContinue={handleContinue}
             onStartFresh={handleStartFresh}
           />
@@ -511,11 +559,50 @@ const WheelPage = () => {
 
       <AnimatePresence>
         {showEventWinnersModal && (
-          <EventWinnersModal
-            winnersCount={existingWinnersCount}
-            onKeepWinners={handleKeepWinners}
-            onStartFresh={handleStartFreshWithParticipants}
-            onStartEmpty={handleStartEmpty}
+          <EventDataModal
+            title="This Event Has Winners!"
+            dataCount={existingWinnersCount}
+            dataLabel="winners"
+            icon="🏆"
+            options={[
+              {
+                label: 'Keep Existing Winners',
+                subtitle: 'Winners removed from wheel, participants stay',
+                primary: true,
+                value: 'keep'
+              },
+              {
+                label: 'Start Fresh',
+                subtitle: 'Reset winners, keep all participants',
+                primary: false,
+                value: 'fresh'
+              },
+              {
+                label: 'Start Empty',
+                subtitle: 'Clear everything (winners & participants)',
+                primary: false,
+                value: 'empty',
+                style: { opacity: 0.8 }
+              }
+            ]}
+            onOptionSelect={(value) => {
+              if (value === 'keep') handleKeepWinners();
+              else if (value === 'fresh') handleStartFreshWithParticipants();
+              else if (value === 'empty') handleStartEmpty();
+            }}
+          />
+        )}
+      </AnimatePresence>
+
+      <AnimatePresence>
+        {showParticipantImportModal && (
+          <ParticipantImportModal
+            title="Welcome Back!"
+            participantCount={squadParticipantCount}
+            sourceTool="Squad Scramble"
+            icon="🔄"
+            onImport={handleImportFromSquad}
+            onStartEmpty={handleStartEmptyWheel}
           />
         )}
       </AnimatePresence>
@@ -580,6 +667,7 @@ const WheelPage = () => {
           <ParticipantList
             names={names}
             onRemove={handleRemoveName}
+            onClearAll={handleClearAllParticipants}
             winners={winners}
           />
 

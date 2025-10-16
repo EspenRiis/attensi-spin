@@ -409,3 +409,36 @@ export const hasTeamGenerationData = async (eventId = null, sessionId = null) =>
     return false;
   }
 };
+
+/**
+ * Clear all team generations for a given event or session
+ * @param {string} eventId - Event ID (for logged-in users) or null
+ * @param {string} sessionId - Session ID (for anonymous users) or null
+ * @returns {Object} - {success: boolean, error: string}
+ */
+export const clearAllTeamGenerations = async (eventId = null, sessionId = null) => {
+  try {
+    const actualSessionId = sessionId || (eventId ? null : getCurrentSessionId());
+
+    if (!eventId && !actualSessionId) {
+      throw new Error('Either eventId or sessionId must be provided');
+    }
+
+    // Delete team generations (cascade will delete teams and team_members)
+    let query = supabase.from('team_generations').delete();
+
+    if (eventId) {
+      query = query.eq('event_id', eventId);
+    } else {
+      query = query.eq('session_id', actualSessionId);
+    }
+
+    const { error } = await query;
+
+    if (error) throw error;
+    return { success: true, error: null };
+  } catch (error) {
+    console.error('Error clearing team generations:', error);
+    return { success: false, error: error.message };
+  }
+};

@@ -1,14 +1,14 @@
 import { motion, AnimatePresence } from 'framer-motion';
 import './ParticipantList.css';
 
-const ParticipantList = ({ names, onRemove, winners = [] }) => {
+const ParticipantList = ({ names, onRemove, onClearAll, winners = [] }) => {
   return (
     <div className="participant-list">
       <div className="list-header">
         <h3>Participants</h3>
         <span className="participant-count">{names.length} {names.length === 1 ? 'person' : 'people'}</span>
       </div>
-      
+
       <div className="list-items">
         <AnimatePresence>
           {names.map((name, index) => {
@@ -43,6 +43,17 @@ const ParticipantList = ({ names, onRemove, winners = [] }) => {
           <p>No participants yet</p>
           <p className="empty-subtitle">Add names to get started!</p>
         </div>
+      )}
+
+      {/* Clear All - subtle text link below list */}
+      {onClearAll && names.length > 0 && (
+        <button
+          className="clear-all-link"
+          onClick={onClearAll}
+          title="Clear all participants"
+        >
+          Clear all participants
+        </button>
       )}
     </div>
   );

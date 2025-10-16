@@ -10,7 +10,9 @@ import {
 } from '../../utils/squadScramble';
 import {
   saveTeamGeneration,
-  loadCurrentTeamGeneration
+  loadCurrentTeamGeneration,
+  hasTeamGenerationData,
+  clearAllTeamGenerations
 } from '../../utils/teamStorage';
 import {
   addName,
@@ -20,13 +22,17 @@ import {
   removeNameFromEvent,
   loadParticipantsFromEvent,
   loadParticipantsWithIds,
-  loadParticipantsWithIdsFromEvent
+  loadParticipantsWithIdsFromEvent,
+  archiveAllParticipants
 } from '../../utils/storage';
 import { hasSession, createNewSession, getCurrentSessionId } from '../../utils/session';
 import TeamConfiguration from './TeamConfiguration';
 import TeamDisplay from './TeamDisplay';
 import ParticipantList from '../ParticipantList';
 import QRCodePanel from '../QRCodePanel';
+import SessionRestoreModal from '../shared/SessionRestoreModal';
+import EventDataModal from '../shared/EventDataModal';
+import ParticipantImportModal from '../shared/ParticipantImportModal';
 import './SquadScramblePage.css';
 
 const SquadScramblePage = () => {
@@ -47,6 +53,7 @@ const SquadScramblePage = () => {
   const [teams, setTeams] = useState([]);
   const [isGenerating, setIsGenerating] = useState(false);
   const [generationId, setGenerationId] = useState(null);
+  const [isLoadingExisting, setIsLoadingExisting] = useState(false); // Flag to skip animations
 
   // Event mode state
   const [isEventMode, setIsEventMode] = useState(false);
@@ -59,6 +66,13 @@ const SquadScramblePage = () => {
   const [toastMessage, setToastMessage] = useState('');
   const [error, setError] = useState('');
 
+  // Modal state
+  const [showSessionRestoreModal, setShowSessionRestoreModal] = useState(false);
+  const [showEventDataModal, setShowEventDataModal] = useState(false);
+  const [showParticipantImportModal, setShowParticipantImportModal] = useState(false);
+  const [existingTeamsCount, setExistingTeamsCount] = useState(0);
+  const [wheelParticipantCount, setWheelParticipantCount] = useState(0);
+
   // Initialize: Check auth state and eventId parameter
   useEffect(() => {
     const initialize = async () => {
@@ -70,7 +84,7 @@ const SquadScramblePage = () => {
       if (eventId) {
         setIsEventMode(true);
         setCurrentEventId(eventId);
-        await loadEventData(eventId);
+        await loadEventData(eventId, true); // isInitialLoad = true
       } else {
         // Free tier: session-based mode
         setIsEventMode(false);
@@ -84,37 +98,66 @@ const SquadScramblePage = () => {
 
   const initializeSessionMode = async () => {
     if (hasSession()) {
-      await loadSessionData();
+      // Check if there's existing team generation data
+      const hasData = await hasTeamGenerationData(null, null);
+
+      if (hasData) {
+        // Show modal to continue or start fresh - DON'T load data yet
+        setShowSessionRestoreModal(true);
+      } else {
+        // Has session but no team data, check for imports BEFORE loading
+        await checkForWheelParticipants();
+      }
     } else {
       // No session, create a new one
       createNewSession();
-      await loadSessionData();
+      // Check for imports before loading participants
+      await checkForWheelParticipants();
     }
   };
 
-  const loadSessionData = async () => {
+  const checkForWheelParticipants = async () => {
+    // Check if Squad Scramble is empty AND Name Roulette has participants
+    if (participants.length === 0) {
+      const wheelParticipants = await loadParticipantsWithIds();
+      if (wheelParticipants.length > 0) {
+        setWheelParticipantCount(wheelParticipants.length);
+        setShowParticipantImportModal(true);
+      }
+    }
+  };
+
+  const loadSessionData = async (loadTeams = true) => {
     // Load participants with real database IDs
     const participantsFromDB = await loadParticipantsWithIds();
     setParticipants(participantsFromDB);
 
     // Try to load existing team generation
-    const { teams: loadedTeams } = await loadCurrentTeamGeneration(null, null);
-    if (loadedTeams && loadedTeams.length > 0) {
-      setTeams(loadedTeams);
+    if (loadTeams) {
+      setIsLoadingExisting(true); // Flag to skip animations
+      const { teams: loadedTeams, generation } = await loadCurrentTeamGeneration(null, null);
+      if (loadedTeams && loadedTeams.length > 0) {
+        setTeams(loadedTeams);
+        setGenerationId(generation?.id || null);
+      }
+      // Reset flag after a brief delay to allow teams to render
+      setTimeout(() => setIsLoadingExisting(false), 100);
     }
   };
 
-  const loadEventData = async (evtId) => {
+const loadEventData = async (evtId, isInitialLoad = false) => {
     try {
-      // Fetch event details
-      const { data: eventData, error: eventError } = await supabase
-        .from('events')
-        .select('*')
-        .eq('id', evtId)
-        .single();
+      // Fetch event details if initial load
+      if (isInitialLoad) {
+        const { data: eventData, error: eventError } = await supabase
+          .from('events')
+          .select('*')
+          .eq('id', evtId)
+          .single();
 
-      if (!eventError && eventData) {
-        setCurrentEvent(eventData);
+        if (!eventError && eventData) {
+          setCurrentEvent(eventData);
+        }
       }
 
       // Load participants with real database IDs
@@ -123,6 +166,17 @@ const SquadScramblePage = () => {
 
       // Load existing team generation
       const { teams: loadedTeams, generation } = await loadCurrentTeamGeneration(evtId, null);
+
+      // On initial load, check if there are existing teams
+      if (isInitialLoad && loadedTeams && loadedTeams.length > 0) {
+        // Show modal to ask user what to do with existing teams
+        setExistingTeamsCount(loadedTeams.length);
+        setShowEventDataModal(true);
+        // Don't set teams yet - wait for user choice
+        return;
+      }
+
+      // Not initial load or no existing teams - load normally
       if (loadedTeams && loadedTeams.length > 0) {
         setTeams(loadedTeams);
         setGenerationId(generation?.id || null);
@@ -137,6 +191,92 @@ const SquadScramblePage = () => {
     setToastMessage(message);
     setShowToast(true);
     setTimeout(() => setShowToast(false), 3000);
+  };
+
+  // Participant Import Modal Handlers
+  const handleImportParticipants = async () => {
+    setShowParticipantImportModal(false);
+    // Load participants from Name Roulette
+    const wheelParticipants = await loadParticipantsWithIds();
+    setParticipants(wheelParticipants);
+    showToastMessage(`Imported ${wheelParticipants.length} participants from Name Roulette!`);
+  };
+
+  const handleStartEmpty = async () => {
+    setShowParticipantImportModal(false);
+    // Don't load any participants, start with empty list
+    setParticipants([]);
+    showToastMessage('Ready to add participants manually!');
+  };
+
+  const handleClearAllParticipants = async () => {
+    if (window.confirm(`Clear all ${participants.length} participants?`)) {
+      const { clearNames } = await import('../../utils/storage');
+      await clearNames();
+      setParticipants([]);
+      setTeams([]); // Also clear any generated teams
+      showToastMessage('All participants cleared!');
+    }
+  };
+
+  // Session Modal Handlers
+  const handleSessionContinue = async () => {
+    setShowSessionRestoreModal(false);
+    setIsLoadingExisting(true); // Skip animations when loading existing
+    await loadSessionData(true); // Load with teams
+    setTimeout(() => setIsLoadingExisting(false), 100);
+    showToastMessage('Previous teams loaded!');
+  };
+
+  const handleSessionStartFresh = async () => {
+    // Clear all team generations
+    await clearAllTeamGenerations(null, null);
+
+    // Reset state
+    setTeams([]);
+    setGenerationId(null);
+    setShowSessionRestoreModal(false);
+
+    // Load participants only
+    await loadSessionData(false);
+    showToastMessage('Starting fresh! Old teams cleared.');
+  };
+
+  // Event Modal Handlers
+  const handleKeepTeams = async () => {
+    setIsLoadingExisting(true); // Skip animations when loading existing
+    const { teams: loadedTeams, generation } = await loadCurrentTeamGeneration(currentEventId, null);
+    setTeams(loadedTeams);
+    setGenerationId(generation?.id || null);
+    setShowEventDataModal(false);
+    setTimeout(() => setIsLoadingExisting(false), 100);
+    showToastMessage(`Loaded ${loadedTeams.length} existing teams!`);
+  };
+
+  const handleClearAndRegenerate = async () => {
+    // Clear existing team generations
+    await clearAllTeamGenerations(currentEventId, null);
+
+    // Reset teams state
+    setTeams([]);
+    setGenerationId(null);
+    setShowEventDataModal(false);
+    showToastMessage('Ready to generate new teams!');
+  };
+
+  const handleStartEmptyEvent = async () => {
+    // Clear all team generations
+    await clearAllTeamGenerations(currentEventId, null);
+
+    // Archive all participants (soft delete)
+    await archiveAllParticipants(currentEventId);
+
+    // Reset state
+    setParticipants([]);
+    setTeams([]);
+    setGenerationId(null);
+    setShowEventDataModal(false);
+    showToastMessage('All data cleared! Starting empty.');
   };
 
   const handleAddParticipant = async (e) => {
@@ -222,8 +362,7 @@ const SquadScramblePage = () => {
       if (saveResult.success) {
         setGenerationId(saveResult.generationId);
         setTeams(teamsToSave);
-        const captainMsg = autoAssignCaptains ? ' with captains' : '';
-        showToastMessage(`Generated ${teamsToSave.length} teams${captainMsg}!`);
+        // Toast will be shown after animations complete (handled by TeamDisplay)
       } else {
         throw new Error(saveResult.error);
       }
@@ -237,12 +376,83 @@ const SquadScramblePage = () => {
   };
 
   const handleRegenerateTeams = () => {
+    // Reset teams and regenerate
     setTeams([]);
     setTimeout(() => handleGenerateTeams(), 100);
   };
 
   return (
     <div className="squad-scramble-page">
+      {/* Session Restore Modal */}
+      <AnimatePresence>
+        {showSessionRestoreModal && (
+          <SessionRestoreModal
+            title="Welcome Back!"
+            description="Would you like to continue from an earlier session?"
+            icon="🎲"
+            continueLabel="Continue"
+            continueSubtitle="Load saved data"
+            freshLabel="Start Fresh"
+            freshSubtitle="Clear all data"
+            onContinue={handleSessionContinue}
+            onStartFresh={handleSessionStartFresh}
+          />
+        )}
+      </AnimatePresence>
+
+      {/* Event Data Modal */}
+      <AnimatePresence>
+        {showEventDataModal && (
+          <EventDataModal
+            title="This Event Has Teams!"
+            dataCount={existingTeamsCount}
+            dataLabel="teams"
+            icon="🏆"
+            options={[
+              {
+                label: 'Keep Existing Teams',
+                subtitle: 'Continue with current team setup',
+                primary: true,
+                value: 'keep'
+              },
+              {
+                label: 'Regenerate Teams',
+                subtitle: 'Clear teams, keep participants',
+                primary: false,
+                value: 'regenerate'
+              },
+              {
+                label: 'Start Empty',
+                subtitle: 'Clear everything (teams & participants)',
+                primary: false,
+                value: 'empty',
+                style: { opacity: 0.8 }
+              }
+            ]}
+            onOptionSelect={(value) => {
+              if (value === 'keep') handleKeepTeams();
+              else if (value === 'regenerate') handleClearAndRegenerate();
+              else if (value === 'empty') handleStartEmptyEvent();
+            }}
+          />
+        )}
+      </AnimatePresence>
+
+      {/* Participant Import Modal */}
+      <AnimatePresence>
+        {showParticipantImportModal && (
+          <ParticipantImportModal
+            title="Welcome Back!"
+            participantCount={wheelParticipantCount}
+            sourceTool="Name Roulette"
+            icon="🔄"
+            onImport={handleImportParticipants}
+            onStartEmpty={handleStartEmpty}
+          />
+        )}
+      </AnimatePresence>
+
+      {/* Toast Notifications */}
       <AnimatePresence>
         {showToast && (
           <motion.div
@@ -301,6 +511,7 @@ const SquadScramblePage = () => {
           <ParticipantList
             names={participants.map(p => p.name)}
             onRemove={handleRemoveParticipant}
+            onClearAll={handleClearAllParticipants}
             winners={[]} // No winner tracking in Squad Scramble
           />
         </div>
@@ -353,6 +564,14 @@ const SquadScramblePage = () => {
           setTeams={setTeams}
           isEventMode={isEventMode}
           generationId={generationId}
+          autoAssignCaptains={autoAssignCaptains}
+          skipAnimations={isLoadingExisting}
+          onAnimationComplete={(teamCount) => {
+            if (!isLoadingExisting) {
+              const captainMsg = autoAssignCaptains ? ' with captains' : '';
+              showToastMessage(`Generated ${teamCount} teams${captainMsg}!`);
+            }
+          }}
         />
       )}
     </div>
