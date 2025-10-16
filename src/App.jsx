@@ -4,6 +4,7 @@ import Header from './components/layout/Header'
 import Footer from './components/layout/Footer'
 import WheelPage from './components/WheelPage'
 import AddNamePage from './components/AddNamePage'
+import SquadScramblePage from './components/squad-scramble/SquadScramblePage'
 import SignupForm from './components/auth/SignupForm'
 import LoginForm from './components/auth/LoginForm'
 import ResetPasswordForm from './components/auth/ResetPasswordForm'
@@ -20,6 +21,7 @@ function App() {
         <Routes>
         <Route path="/" element={<WheelPage />} />
         <Route path="/add-name" element={<AddNamePage />} />
+        <Route path="/squad-scramble" element={<SquadScramblePage />} />
         <Route path="/signup" element={<SignupForm />} />
         <Route path="/login" element={<LoginForm />} />
         <Route path="/reset-password" element={<ResetPasswordForm />} />

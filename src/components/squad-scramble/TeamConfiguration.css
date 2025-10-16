@@ -1,0 +1,193 @@
+/* Team Configuration Component */
+
+.team-configuration {
+  background: rgba(26, 41, 66, 0.6);
+  border: 2px solid rgba(0, 217, 255, 0.3);
+  border-radius: 15px;
+  padding: 25px;
+  backdrop-filter: blur(10px);
+  width: 100%;
+  max-width: 500px;
+}
+
+.config-title {
+  color: var(--cyan-bright);
+  font-size: 24px;
+  font-weight: 700;
+  margin: 0 0 20px 0;
+  text-align: center;
+  text-shadow: 0 0 20px rgba(0, 217, 255, 0.4);
+}
+
+/* Mode Toggle */
+.mode-toggle {
+  display: flex;
+  gap: 10px;
+  margin-bottom: 25px;
+  background: rgba(10, 22, 40, 0.5);
+  padding: 5px;
+  border-radius: 10px;
+}
+
+.mode-button {
+  flex: 1;
+  padding: 12px 20px;
+  background: transparent;
+  color: var(--light-text);
+  border: 2px solid transparent;
+  border-radius: 8px;
+  font-size: 14px;
+  font-weight: 600;
+  cursor: pointer;
+  transition: all 0.3s ease;
+}
+
+.mode-button:hover {
+  background: rgba(0, 217, 255, 0.1);
+  color: var(--cyan-bright);
+}
+
+.mode-button.active {
+  background: linear-gradient(135deg, var(--cyan-bright), #0088FF);
+  color: var(--navy-dark);
+  border-color: var(--cyan-bright);
+  box-shadow: 0 5px 20px rgba(0, 217, 255, 0.3);
+}
+
+/* Input Section */
+.config-input-section {
+  margin-bottom: 25px;
+}
+
+.input-group {
+  display: flex;
+  flex-direction: column;
+  gap: 10px;
+}
+
+.input-group label {
+  color: var(--light-text);
+  font-size: 14px;
+  font-weight: 600;
+  text-transform: uppercase;
+  letter-spacing: 1px;
+}
+
+.config-input {
+  padding: 15px;
+  background: rgba(255, 255, 255, 0.1);
+  border: 2px solid rgba(0, 217, 255, 0.3);
+  border-radius: 10px;
+  color: var(--white);
+  font-size: 24px;
+  font-weight: 700;
+  text-align: center;
+  outline: none;
+  transition: all 0.3s ease;
+}
+
+.config-input:focus {
+  background: rgba(255, 255, 255, 0.15);
+  border-color: var(--cyan-bright);
+  box-shadow: 0 0 20px rgba(0, 217, 255, 0.3);
+}
+
+.input-hint {
+  color: rgba(255, 255, 255, 0.5);
+  font-size: 12px;
+  text-align: center;
+}
+
+/* Preview Section */
+.preview-section {
+  background: rgba(10, 22, 40, 0.5);
+  border-radius: 10px;
+  padding: 20px;
+}
+
+.preview-section.empty {
+  text-align: center;
+  color: rgba(255, 255, 255, 0.5);
+  padding: 30px;
+}
+
+.preview-title {
+  color: var(--green-neon);
+  font-size: 12px;
+  font-weight: 700;
+  text-transform: uppercase;
+  letter-spacing: 2px;
+  margin-bottom: 15px;
+  text-shadow: 0 0 15px rgba(0, 255, 136, 0.4);
+}
+
+.preview-stats {
+  display: flex;
+  gap: 15px;
+  margin-bottom: 15px;
+  justify-content: space-around;
+}
+
+.preview-stat {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 5px;
+}
+
+.preview-stat.warning {
+  color: #f9ca24;
+}
+
+.stat-value {
+  font-size: 32px;
+  font-weight: 700;
+  color: var(--cyan-bright);
+  text-shadow: 0 0 15px rgba(0, 217, 255, 0.4);
+}
+
+.preview-stat.warning .stat-value {
+  color: #f9ca24;
+  text-shadow: 0 0 15px rgba(249, 202, 36, 0.4);
+}
+
+.stat-label {
+  font-size: 11px;
+  color: var(--light-text);
+  text-transform: uppercase;
+  letter-spacing: 1px;
+}
+
+.preview-description {
+  color: rgba(255, 255, 255, 0.7);
+  font-size: 13px;
+  line-height: 1.5;
+  text-align: center;
+  padding: 10px;
+  background: rgba(0, 217, 255, 0.05);
+  border-radius: 8px;
+}
+
+/* Responsive */
+@media (max-width: 768px) {
+  .team-configuration {
+    max-width: 100%;
+  }
+
+  .config-title {
+    font-size: 20px;
+  }
+
+  .mode-button {
+    font-size: 12px;
+    padding: 10px 15px;
+  }
+
+  .config-input {
+    font-size: 20px;
+  }
+
+  .stat-value {
+    font-size: 24px;
+  }
+}
