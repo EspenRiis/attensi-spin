@@ -11,13 +11,57 @@ const TeamConfiguration = ({
   participantCount
 }) => {
   const handleTeamCountChange = (e) => {
-    const value = parseInt(e.target.value) || 2;
-    setTeamCount(Math.max(2, Math.min(50, value)));
+    const value = e.target.value;
+    // Allow empty string for editing
+    if (value === '') {
+      setTeamCount('');
+      return;
+    }
+    const numValue = parseInt(value);
+    if (!isNaN(numValue)) {
+      setTeamCount(Math.max(2, Math.min(50, numValue)));
+    }
   };
 
   const handleTeamSizeChange = (e) => {
-    const value = parseInt(e.target.value) || 1;
-    setTeamSize(Math.max(1, Math.min(50, value)));
+    const value = e.target.value;
+    // Allow empty string for editing
+    if (value === '') {
+      setTeamSize('');
+      return;
+    }
+    const numValue = parseInt(value);
+    if (!isNaN(numValue)) {
+      setTeamSize(Math.max(1, Math.min(50, numValue)));
+    }
+  };
+
+  const handleTeamCountBlur = () => {
+    if (teamCount === '' || teamCount < 2) {
+      setTeamCount(2);
+    }
+  };
+
+  const handleTeamSizeBlur = () => {
+    if (teamSize === '' || teamSize < 1) {
+      setTeamSize(1);
+    }
+  };
+
+  const incrementTeamCount = () => {
+    setTeamCount(prev => Math.min(50, (parseInt(prev) || 2) + 1));
+  };
+
+  const decrementTeamCount = () => {
+    setTeamCount(prev => Math.max(2, (parseInt(prev) || 2) - 1));
+  };
+
+  const incrementTeamSize = () => {
+    setTeamSize(prev => Math.min(50, (parseInt(prev) || 1) + 1));
+  };
+
+  const decrementTeamSize = () => {
+    setTeamSize(prev => Math.max(1, (parseInt(prev) || 1) - 1));
   };
 
   const calculatePreview = () => {
@@ -76,29 +120,63 @@ const TeamConfiguration = ({
         {mode === 'team_count' ? (
           <div className="input-group">
             <label htmlFor="teamCount">Number of Teams</label>
-            <input
-              id="teamCount"
-              type="number"
-              min="2"
-              max="50"
-              value={teamCount}
-              onChange={handleTeamCountChange}
-              className="config-input"
-            />
+            <div className="number-input-wrapper">
+              <button
+                className="number-button decrease"
+                onClick={decrementTeamCount}
+                type="button"
+              >
+                −
+              </button>
+              <input
+                id="teamCount"
+                type="number"
+                min="2"
+                max="50"
+                value={teamCount}
+                onChange={handleTeamCountChange}
+                onBlur={handleTeamCountBlur}
+                className="config-input"
+              />
+              <button
+                className="number-button increase"
+                onClick={incrementTeamCount}
+                type="button"
+              >
+                +
+              </button>
+            </div>
             <span className="input-hint">2-50 teams</span>
           </div>
         ) : (
           <div className="input-group">
             <label htmlFor="teamSize">People per Team</label>
-            <input
-              id="teamSize"
-              type="number"
-              min="1"
-              max="50"
-              value={teamSize}
-              onChange={handleTeamSizeChange}
-              className="config-input"
-            />
+            <div className="number-input-wrapper">
+              <button
+                className="number-button decrease"
+                onClick={decrementTeamSize}
+                type="button"
+              >
+                −
+              </button>
+              <input
+                id="teamSize"
+                type="number"
+                min="1"
+                max="50"
+                value={teamSize}
+                onChange={handleTeamSizeChange}
+                onBlur={handleTeamSizeBlur}
+                className="config-input"
+              />
+              <button
+                className="number-button increase"
+                onClick={incrementTeamSize}
+                type="button"
+              >
+                +
+              </button>
+            </div>
             <span className="input-hint">1-50 people</span>
           </div>
         )}

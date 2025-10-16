@@ -326,28 +326,14 @@ const SquadScramblePage = () => {
           )}
 
           <motion.button
-            className="generate-button"
-            onClick={handleGenerateTeams}
+            className={teams.length > 0 ? "regenerate-button" : "generate-button"}
+            onClick={teams.length > 0 ? handleRegenerateTeams : handleGenerateTeams}
             disabled={isGenerating || participants.length < 2}
             whileHover={{ scale: 1.05 }}
             whileTap={{ scale: 0.95 }}
           >
-            {isGenerating ? 'GENERATING...' : 'GENERATE TEAMS'}
+            {isGenerating ? 'GENERATING...' : teams.length > 0 ? '🔄 REGENERATE TEAMS' : 'GENERATE TEAMS'}
           </motion.button>
-
-          {teams.length > 0 && (
-            <motion.button
-              className="regenerate-button"
-              onClick={handleRegenerateTeams}
-              disabled={isGenerating}
-              initial={{ opacity: 0 }}
-              animate={{ opacity: 1 }}
-              whileHover={{ scale: 1.05 }}
-              whileTap={{ scale: 0.95 }}
-            >
-              🔄 Shuffle Again
-            </motion.button>
-          )}
         </div>
 
         {/* Right Section: QR Code */}

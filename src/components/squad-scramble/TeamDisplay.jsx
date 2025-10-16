@@ -1,4 +1,4 @@
-import { useState } from 'react';
+import { useState, useEffect } from 'react';
 import { motion, AnimatePresence } from 'framer-motion';
 import TeamCard from './TeamCard';
 import './TeamDisplay.css';
@@ -7,12 +7,15 @@ const TeamDisplay = ({ teams, setTeams, isEventMode, generationId }) => {
   const [revealedTeams, setRevealedTeams] = useState([]);
   const [showConfetti, setShowConfetti] = useState(false);
 
-  // Reveal teams one by one when first loaded
-  useState(() => {
-    if (teams.length > 0 && revealedTeams.length === 0) {
+  // Reveal teams one by one when teams change
+  useEffect(() => {
+    if (teams.length > 0) {
+      // Reset revealed teams
+      setRevealedTeams([]);
+
       const revealSequence = async () => {
         for (let i = 0; i < teams.length; i++) {
-          await new Promise(resolve => setTimeout(resolve, 400));
+          await new Promise(resolve => setTimeout(resolve, 300));
           setRevealedTeams(prev => [...prev, i]);
         }
         // Show confetti after all teams revealed
@@ -21,7 +24,7 @@ const TeamDisplay = ({ teams, setTeams, isEventMode, generationId }) => {
       };
       revealSequence();
     }
-  }, [teams, revealedTeams]);
+  }, [teams]);
 
   const Confetti = () => {
     const pieces = Array.from({ length: 50 });

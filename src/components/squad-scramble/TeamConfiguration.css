@@ -73,7 +73,42 @@
   letter-spacing: 1px;
 }
 
+.number-input-wrapper {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+}
+
+.number-button {
+  width: 50px;
+  height: 50px;
+  background: rgba(0, 217, 255, 0.2);
+  border: 2px solid rgba(0, 217, 255, 0.4);
+  border-radius: 10px;
+  color: var(--cyan-bright);
+  font-size: 28px;
+  font-weight: 700;
+  cursor: pointer;
+  transition: all 0.2s ease;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  flex-shrink: 0;
+}
+
+.number-button:hover {
+  background: rgba(0, 217, 255, 0.3);
+  border-color: var(--cyan-bright);
+  transform: scale(1.05);
+  box-shadow: 0 0 15px rgba(0, 217, 255, 0.4);
+}
+
+.number-button:active {
+  transform: scale(0.95);
+}
+
 .config-input {
+  flex: 1;
   padding: 15px;
   background: rgba(255, 255, 255, 0.1);
   border: 2px solid rgba(0, 217, 255, 0.3);
@@ -84,6 +119,17 @@
   text-align: center;
   outline: none;
   transition: all 0.3s ease;
+}
+
+/* Hide default number input spinners */
+.config-input::-webkit-inner-spin-button,
+.config-input::-webkit-outer-spin-button {
+  -webkit-appearance: none;
+  margin: 0;
+}
+
+.config-input[type=number] {
+  -moz-appearance: textfield;
 }
 
 .config-input:focus {
