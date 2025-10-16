@@ -41,6 +41,7 @@ const SquadScramblePage = () => {
   const [mode, setMode] = useState('team_count'); // 'team_count' or 'team_size'
   const [teamCount, setTeamCount] = useState(2);
   const [teamSize, setTeamSize] = useState(3);
+  const [autoAssignCaptains, setAutoAssignCaptains] = useState(true);
 
   // Generated teams
   const [teams, setTeams] = useState([]);
@@ -205,8 +206,8 @@ const SquadScramblePage = () => {
         result = generateTeamsBySize(participants, teamSize);
       }
 
-      // Assign random captains
-      const teamsWithCaptains = assignRandomCaptains(result.teams);
+      // Optionally assign random captains
+      const teamsToSave = autoAssignCaptains ? assignRandomCaptains(result.teams) : result.teams;
 
       // Save to database
       const saveResult = await saveTeamGeneration({
@@ -215,13 +216,14 @@ const SquadScramblePage = () => {
         mode: result.mode,
         teamCount: result.mode === 'team_count' ? result.teamCount : null,
         teamSize: result.mode === 'team_size' ? result.teamSize : null,
-        teams: teamsWithCaptains
+        teams: teamsToSave
       });
 
       if (saveResult.success) {
         setGenerationId(saveResult.generationId);
-        setTeams(teamsWithCaptains);
-        showToastMessage(`Generated ${teamsWithCaptains.length} teams!`);
+        setTeams(teamsToSave);
+        const captainMsg = autoAssignCaptains ? ' with captains' : '';
+        showToastMessage(`Generated ${teamsToSave.length} teams${captainMsg}!`);
       } else {
         throw new Error(saveResult.error);
       }
@@ -313,6 +315,8 @@ const SquadScramblePage = () => {
             teamSize={teamSize}
             setTeamSize={setTeamSize}
             participantCount={participants.length}
+            autoAssignCaptains={autoAssignCaptains}
+            setAutoAssignCaptains={setAutoAssignCaptains}
           />
 
           {error && (

@@ -98,6 +98,13 @@ const TeamCard = ({ team, teams, setTeams, isEventMode, generationId }) => {
         </span>
       </div>
 
+      {/* Captain Hint */}
+      {!team.captain && team.members.length > 0 && (
+        <div className="captain-hint">
+          💡 Click a member to assign captain
+        </div>
+      )}
+
       {/* Team Members */}
       <div className="team-members">
         {team.members.map((member, index) => {

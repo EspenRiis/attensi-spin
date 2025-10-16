@@ -8,7 +8,9 @@ const TeamConfiguration = ({
   setTeamCount,
   teamSize,
   setTeamSize,
-  participantCount
+  participantCount,
+  autoAssignCaptains,
+  setAutoAssignCaptains
 }) => {
   const handleTeamCountChange = (e) => {
     const value = e.target.value;
@@ -180,6 +182,23 @@ const TeamConfiguration = ({
             <span className="input-hint">1-50 people</span>
           </div>
         )}
+      </div>
+
+      {/* Captain Assignment Toggle */}
+      <div className="captain-toggle-section">
+        <label className="toggle-label">
+          <input
+            type="checkbox"
+            checked={autoAssignCaptains}
+            onChange={(e) => setAutoAssignCaptains(e.target.checked)}
+            className="toggle-checkbox"
+          />
+          <span className="toggle-slider"></span>
+          <span className="toggle-text">
+            👑 Auto-assign team captains
+            <span className="toggle-hint">Randomly select a captain for each team</span>
+          </span>
+        </label>
       </div>
 
       {/* Preview */}

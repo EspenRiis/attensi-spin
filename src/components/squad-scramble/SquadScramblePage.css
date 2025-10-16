@@ -171,7 +171,7 @@
 /* Toast Notification */
 .toast {
   position: fixed;
-  top: 20px;
+  top: 80px;
   left: 50%;
   transform: translateX(-50%);
   background: rgba(0, 217, 255, 0.95);
@@ -179,7 +179,7 @@
   padding: 15px 30px;
   border-radius: 10px;
   font-weight: 600;
-  z-index: 1000;
+  z-index: 10000;
   box-shadow: 0 5px 20px rgba(0, 217, 255, 0.5);
   backdrop-filter: blur(10px);
 }
