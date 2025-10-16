@@ -18,7 +18,9 @@ import {
   removeName,
   addNameToEvent,
   removeNameFromEvent,
-  loadParticipantsFromEvent
+  loadParticipantsFromEvent,
+  loadParticipantsWithIds,
+  loadParticipantsWithIdsFromEvent
 } from '../../utils/storage';
 import { hasSession, createNewSession, getCurrentSessionId } from '../../utils/session';
 import TeamConfiguration from './TeamConfiguration';
@@ -90,11 +92,9 @@ const SquadScramblePage = () => {
   };
 
   const loadSessionData = async () => {
-    const namesFromDB = await loadNames();
-    setParticipants(namesFromDB.map((name, index) => ({
-      id: `participant-${index}`,
-      name: name
-    })));
+    // Load participants with real database IDs
+    const participantsFromDB = await loadParticipantsWithIds();
+    setParticipants(participantsFromDB);
 
     // Try to load existing team generation
     const { teams: loadedTeams } = await loadCurrentTeamGeneration(null, null);
@@ -116,12 +116,9 @@ const SquadScramblePage = () => {
         setCurrentEvent(eventData);
       }
 
-      // Load participants
-      const { names: loadedNames } = await loadParticipantsFromEvent(evtId);
-      setParticipants(loadedNames.map((name, index) => ({
-        id: `participant-${index}`,
-        name: name
-      })));
+      // Load participants with real database IDs
+      const participantsFromDB = await loadParticipantsWithIdsFromEvent(evtId);
+      setParticipants(participantsFromDB);
 
       // Load existing team generation
       const { teams: loadedTeams, generation } = await loadCurrentTeamGeneration(evtId, null);
@@ -150,7 +147,14 @@ const SquadScramblePage = () => {
         : await addName(inputName.trim());
 
       if (result.success) {
-        setParticipants(prev => [...prev, { id: `participant-${Date.now()}`, name: inputName.trim() }]);
+        // Reload participants to get real database IDs
+        if (isEventMode) {
+          const participantsFromDB = await loadParticipantsWithIdsFromEvent(currentEventId);
+          setParticipants(participantsFromDB);
+        } else {
+          const participantsFromDB = await loadParticipantsWithIds();
+          setParticipants(participantsFromDB);
+        }
         setInputName('');
         showToastMessage(`${inputName.trim()} added!`);
       } else {

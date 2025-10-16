@@ -72,6 +72,29 @@ export const loadNames = async (sessionId = null) => {
   }
 };
 
+// Load all participants with IDs from Supabase for current session
+export const loadParticipantsWithIds = async (sessionId = null) => {
+  try {
+    const session = sessionId || getCurrentSessionId();
+    if (!session) {
+      return [];
+    }
+
+    const { data, error } = await supabase
+      .from('participants')
+      .select('id, name, email')
+      .eq('session_id', session)
+      .eq('status', 'active')
+      .order('created_at', { ascending: true });
+
+    if (error) throw error;
+    return data || [];
+  } catch (error) {
+    console.error('Error loading participants:', error);
+    return [];
+  }
+};
+
 // Remove a specific name from Supabase for current session
 export const removeName = async (name, sessionId = null) => {
   try {
@@ -182,6 +205,24 @@ export const loadParticipantsFromEvent = async (eventId) => {
   } catch (error) {
     console.error('Error loading participants from event:', error);
     return { names: [], winners: [] };
+  }
+};
+
+// Load all active participants with IDs from an event
+export const loadParticipantsWithIdsFromEvent = async (eventId) => {
+  try {
+    const { data, error } = await supabase
+      .from('participants')
+      .select('id, name, email, is_winner, status')
+      .eq('event_id', eventId)
+      .eq('status', 'active')
+      .order('created_at', { ascending: true});
+
+    if (error) throw error;
+    return data || [];
+  } catch (error) {
+    console.error('Error loading participants from event:', error);
+    return [];
   }
 };
 
