@@ -60,6 +60,9 @@ const Header = () => {
               <button onClick={() => navigate('/')} className="nav-link">
                 Spin Wheel
               </button>
+              <button onClick={() => navigate('/squad-scramble')} className="nav-link">
+                Squad Scramble
+              </button>
               <div className="user-menu">
                 <span className="user-email">{user.email}</span>
                 <button onClick={handleSignOut} className="btn-signout">
