@@ -1,0 +1,312 @@
+import { useState, useEffect } from 'react';
+import { useParams, useNavigate, useLocation } from 'react-router-dom';
+import { motion, AnimatePresence } from 'framer-motion';
+import { supabase } from '../../lib/supabase';
+import { useQuizGame } from '../../hooks/useQuizGame';
+import Leaderboard from './Leaderboard';
+import QuestionDisplay from './QuestionDisplay';
+import HostControls from './HostControls';
+import AnswerDistribution from './AnswerDistribution';
+import './QuizHostView.css';
+
+const QuizHostView = () => {
+  const { sessionId } = useParams();
+  const navigate = useNavigate();
+  const location = useLocation();
+  const { autoReveal, quiz: quizFromState } = location.state || {};
+
+  const [user, setUser] = useState(null);
+  const [session, setSession] = useState(null);
+  const [quiz, setQuiz] = useState(quizFromState);
+  const [questions, setQuestions] = useState([]);
+  const [loading, setLoading] = useState(true);
+  const [showQuestion, setShowQuestion] = useState(false);
+  const [answerRevealed, setAnswerRevealed] = useState(false);
+
+  // Get current user
+  useEffect(() => {
+    supabase.auth.getUser().then(({ data: { user } }) => {
+      setUser(user);
+    });
+  }, []);
+
+  // Load session and questions
+  useEffect(() => {
+    const loadSessionData = async () => {
+      try {
+        // Get session
+        const { data: sessionData, error: sessionError } = await supabase
+          .from('quiz_sessions')
+          .select(`
+            *,
+            quizzes (
+              id,
+              name,
+              description
+            )
+          `)
+          .eq('id', sessionId)
+          .single();
+
+        if (sessionError) throw sessionError;
+        setSession(sessionData);
+        setQuiz(sessionData.quizzes);
+
+        // Load questions
+        const { data: questionsData, error: questionsError } = await supabase
+          .from('questions')
+          .select('*')
+          .eq('quiz_id', sessionData.quiz_id)
+          .order('order_index', { ascending: true });
+
+        if (questionsError) throw questionsError;
+        setQuestions(questionsData);
+        setLoading(false);
+      } catch (error) {
+        console.error('Error loading session data:', error);
+        alert('Failed to load quiz session');
+        navigate('/quiz-builder');
+      }
+    };
+
+    loadSessionData();
+  }, [sessionId, navigate]);
+
+  // Initialize WebSocket
+  const {
+    connected,
+    gameState,
+    startQuiz,
+    revealAnswer,
+    nextQuestion,
+    endQuiz,
+  } = useQuizGame(sessionId, user?.id);
+
+  // Start quiz when component mounts and update session status
+  useEffect(() => {
+    const initializeQuiz = async () => {
+      if (connected && user && !loading && questions.length > 0) {
+        console.log('Starting quiz with', questions.length, 'questions');
+
+        // Update session status to 'active'
+        const { error } = await supabase
+          .from('quiz_sessions')
+          .update({
+            status: 'active',
+            started_at: new Date().toISOString()
+          })
+          .eq('id', sessionId);
+
+        if (error) {
+          console.error('Error updating session status:', error);
+        } else {
+          console.log('Session status updated to active');
+        }
+
+        // Start the WebSocket quiz
+        startQuiz();
+      }
+    };
+
+    initializeQuiz();
+  }, [connected, user, loading, questions, sessionId, startQuiz]);
+
+  // Handle question display with 3-second delay
+  useEffect(() => {
+    if (gameState.currentQuestion) {
+      // First show just the question
+      setShowQuestion(true);
+      setAnswerRevealed(false);
+
+      // After 3 seconds, show the answer options
+      const timer = setTimeout(() => {
+        setShowQuestion(true);
+      }, 3000);
+
+      return () => clearTimeout(timer);
+    }
+  }, [gameState.currentQuestion?.id]);
+
+  // Auto-reveal when time expires
+  const handleTimeExpired = () => {
+    if (autoReveal && !answerRevealed && gameState.currentQuestion) {
+      handleRevealAnswer();
+    }
+  };
+
+  const handleRevealAnswer = () => {
+    if (gameState.currentQuestion) {
+      revealAnswer(gameState.currentQuestion.id);
+      setAnswerRevealed(true);
+    }
+  };
+
+  const handleNextQuestion = () => {
+    setShowQuestion(false);
+    setAnswerRevealed(false);
+    nextQuestion();
+  };
+
+  const handleExitToLobby = () => {
+    if (confirm('Are you sure you want to exit? This will end the quiz for all players.')) {
+      endQuiz();
+      navigate(`/quiz-race/${quiz?.id}/lobby`);
+    }
+  };
+
+  if (loading || !connected) {
+    return (
+      <div className="quiz-host-view loading">
+        <motion.div
+          className="loading-spinner"
+          animate={{ rotate: 360 }}
+          transition={{ duration: 1, repeat: Infinity, ease: 'linear' }}
+        >
+          ⚡
+        </motion.div>
+        <p>{loading ? 'Loading quiz...' : 'Connecting to game...'}</p>
+      </div>
+    );
+  }
+
+  // Quiz completed
+  if (gameState.status === 'completed') {
+    return (
+      <div className="quiz-host-view completed">
+        <motion.div
+          className="completion-screen"
+          initial={{ opacity: 0, scale: 0.9 }}
+          animate={{ opacity: 1, scale: 1 }}
+        >
+          <h1 className="completion-title">🏆 Quiz Complete!</h1>
+          <h2 className="completion-subtitle">{quiz?.name}</h2>
+
+          <div className="final-leaderboard">
+            <Leaderboard leaderboard={gameState.leaderboard} />
+          </div>
+
+          <div className="completion-actions">
+            <button
+              className="action-button primary"
+              onClick={() => navigate('/quiz-builder')}
+            >
+              Back to Quizzes
+            </button>
+            <button
+              className="action-button secondary"
+              onClick={() => navigate(`/quiz-race/${quiz?.id}/lobby`)}
+            >
+              Play Again
+            </button>
+          </div>
+        </motion.div>
+      </div>
+    );
+  }
+
+  return (
+    <div className="quiz-host-view">
+      {/* Top Bar */}
+      <div className="host-header">
+        <div className="quiz-info">
+          <h2>{quiz?.name}</h2>
+          <span className="status-badge">
+            {gameState.status === 'in_progress' ? '🎮 Live' : '⏸️ Waiting'}
+          </span>
+        </div>
+      </div>
+
+      <div className="host-content">
+        {/* Left: Leaderboard (30%) */}
+        <div className="leaderboard-section">
+          <Leaderboard
+            leaderboard={gameState.leaderboard}
+            highlightChanges={answerRevealed}
+          />
+        </div>
+
+        {/* Right: Question & Controls (70%) */}
+        <div className="gameplay-section">
+          {gameState.currentQuestion ? (
+            <>
+              {/* Question Display */}
+              <div className="question-area">
+                <AnimatePresence mode="wait">
+                  {showQuestion && (
+                    <motion.div
+                      key={gameState.currentQuestion.id}
+                      initial={{ opacity: 0 }}
+                      animate={{ opacity: 1 }}
+                      exit={{ opacity: 0 }}
+                    >
+                      <QuestionDisplay
+                        question={gameState.currentQuestion}
+                        currentQuestionIndex={gameState.currentQuestionIndex}
+                        totalQuestions={gameState.totalQuestions}
+                        timeLimit={gameState.currentQuestion.time_limit}
+                        onTimeExpired={handleTimeExpired}
+                        showAnswers={showQuestion}
+                      />
+                    </motion.div>
+                  )}
+
+                  {!showQuestion && (
+                    <motion.div
+                      className="question-transition"
+                      initial={{ opacity: 0, scale: 0.9 }}
+                      animate={{ opacity: 1, scale: 1 }}
+                      exit={{ opacity: 0 }}
+                    >
+                      <h2 className="transition-text">
+                        Next Question Coming Up...
+                      </h2>
+                      <div className="transition-countdown">3</div>
+                    </motion.div>
+                  )}
+                </AnimatePresence>
+              </div>
+
+              {/* Answer Distribution (when revealed) */}
+              <AnimatePresence>
+                {answerRevealed && gameState.results && (
+                  <motion.div
+                    initial={{ opacity: 0, y: 20 }}
+                    animate={{ opacity: 1, y: 0 }}
+                    exit={{ opacity: 0, y: -20 }}
+                  >
+                    <AnswerDistribution
+                      question={gameState.currentQuestion}
+                      results={gameState.results.results}
+                      correctAnswer={gameState.results.correctAnswer}
+                    />
+                  </motion.div>
+                )}
+              </AnimatePresence>
+
+              {/* Host Controls */}
+              <HostControls
+                onRevealAnswer={handleRevealAnswer}
+                onNextQuestion={handleNextQuestion}
+                onExitToLobby={handleExitToLobby}
+                showReveal={!answerRevealed}
+                showNext={answerRevealed}
+                answerRevealed={answerRevealed}
+              />
+            </>
+          ) : (
+            <div className="waiting-for-question">
+              <motion.div
+                animate={{ scale: [1, 1.1, 1] }}
+                transition={{ duration: 2, repeat: Infinity }}
+              >
+                <h2>Preparing first question...</h2>
+              </motion.div>
+            </div>
+          )}
+        </div>
+      </div>
+    </div>
+  );
+};
+
+export default QuizHostView;

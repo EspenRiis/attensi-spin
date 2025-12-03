@@ -1,0 +1,164 @@
+.quiz-player-waiting {
+  min-height: 100vh;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  padding: 2rem;
+  background: linear-gradient(135deg, var(--navy-dark) 0%, var(--navy-medium) 100%);
+}
+
+.waiting-container {
+  max-width: 800px;
+  width: 100%;
+}
+
+/* Header */
+.waiting-header {
+  text-align: center;
+  margin-bottom: 3rem;
+}
+
+.waiting-icon {
+  font-size: 4rem;
+  margin-bottom: 1rem;
+}
+
+.waiting-header h1 {
+  font-size: 2rem;
+  color: var(--cyan-bright);
+  margin-bottom: 1rem;
+  text-transform: uppercase;
+  letter-spacing: 3px;
+}
+
+.waiting-header h2 {
+  font-size: 2.5rem;
+  font-weight: 700;
+  color: var(--white);
+  margin-bottom: 1rem;
+}
+
+.join-code-info {
+  font-size: 1rem;
+  color: var(--gray-light);
+  margin-top: 1rem;
+}
+
+.join-code {
+  font-size: 1.5rem;
+  font-weight: 700;
+  color: var(--cyan-bright);
+  letter-spacing: 4px;
+}
+
+/* Participants Section */
+.participants-section {
+  background: var(--navy-medium);
+  padding: 2rem;
+  border-radius: 20px;
+  border: 2px solid rgba(0, 217, 255, 0.2);
+  margin-bottom: 2rem;
+}
+
+.participants-section h3 {
+  font-size: 1.5rem;
+  color: var(--white);
+  margin-bottom: 1.5rem;
+  text-align: center;
+}
+
+.participant-count {
+  color: var(--cyan-bright);
+  font-size: 2rem;
+  font-weight: 700;
+}
+
+.participants-grid {
+  display: grid;
+  grid-template-columns: repeat(auto-fill, minmax(150px, 1fr));
+  gap: 1rem;
+  max-height: 50vh;
+  overflow-y: auto;
+  padding-right: 0.5rem;
+}
+
+.participant-card {
+  background: var(--navy-dark);
+  border: 2px solid var(--green-neon);
+  border-radius: 15px;
+  padding: 1.5rem;
+  text-align: center;
+  transition: all 0.3s ease;
+}
+
+.participant-card.me {
+  border-color: var(--cyan-bright);
+  background: linear-gradient(135deg, rgba(0, 217, 255, 0.1) 0%, rgba(0, 217, 255, 0.05) 100%);
+  box-shadow: 0 0 20px rgba(0, 217, 255, 0.3);
+}
+
+.participant-card:hover {
+  transform: translateY(-5px);
+}
+
+.participant-card.me:hover {
+  box-shadow: 0 5px 25px rgba(0, 217, 255, 0.4);
+}
+
+.participant-avatar {
+  font-size: 3rem;
+  margin-bottom: 0.5rem;
+}
+
+.participant-name {
+  font-size: 1rem;
+  font-weight: 600;
+  color: var(--white);
+  text-transform: uppercase;
+  letter-spacing: 1px;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 0.5rem;
+}
+
+.you-badge {
+  display: inline-block;
+  padding: 0.25rem 0.75rem;
+  background: var(--cyan-bright);
+  color: var(--navy-dark);
+  border-radius: 12px;
+  font-size: 0.7rem;
+  font-weight: 700;
+  letter-spacing: 1px;
+}
+
+/* Waiting Message */
+.waiting-message {
+  text-align: center;
+  padding: 2rem;
+  background: rgba(0, 217, 255, 0.05);
+  border-radius: 15px;
+  border: 1px solid rgba(0, 217, 255, 0.2);
+}
+
+.waiting-message p {
+  font-size: 1.2rem;
+  color: var(--cyan-bright);
+  font-weight: 600;
+}
+
+@media (max-width: 768px) {
+  .participants-grid {
+    grid-template-columns: repeat(auto-fill, minmax(120px, 1fr));
+    gap: 0.75rem;
+  }
+
+  .waiting-header h1 {
+    font-size: 1.5rem;
+  }
+
+  .waiting-header h2 {
+    font-size: 1.8rem;
+  }
+}

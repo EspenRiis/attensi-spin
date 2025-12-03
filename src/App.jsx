@@ -12,6 +12,12 @@ import Dashboard from './components/dashboard/Dashboard'
 import EventLayout from './components/events/EventLayout'
 import RegisterPage from './components/registration/RegisterPage'
 import ProtectedRoute from './components/ProtectedRoute'
+import QuizListPage from './components/quiz/QuizListPage'
+import QuizEditorPage from './components/quiz/QuizEditorPage'
+import QuizLobbyHost from './components/quiz/QuizLobbyHost'
+import QuizHostView from './components/quiz/QuizHostView'
+import QuizJoinPage from './components/quiz/QuizJoinPage'
+import QuizPlayerWaiting from './components/quiz/QuizPlayerWaiting'
 
 function App() {
   return (
@@ -50,6 +56,41 @@ function App() {
           }
         />
         <Route path="/register" element={<RegisterPage />} />
+        <Route
+          path="/quiz-builder"
+          element={
+            <ProtectedRoute>
+              <QuizListPage />
+            </ProtectedRoute>
+          }
+        />
+        <Route
+          path="/quiz-builder/:quizId"
+          element={
+            <ProtectedRoute>
+              <QuizEditorPage />
+            </ProtectedRoute>
+          }
+        />
+        <Route
+          path="/quiz-race/:quizId/lobby"
+          element={
+            <ProtectedRoute>
+              <QuizLobbyHost />
+            </ProtectedRoute>
+          }
+        />
+        <Route
+          path="/quiz-race/:sessionId/host"
+          element={
+            <ProtectedRoute>
+              <QuizHostView />
+            </ProtectedRoute>
+          }
+        />
+        <Route path="/quiz-race/:sessionId/join" element={<QuizJoinPage />} />
+        <Route path="/quiz-race/:sessionId/play" element={<QuizPlayerWaiting />} />
+        <Route path="/quiz-race/:sessionId/game" element={<div>Game view coming soon...</div>} />
       </Routes>
       </main>
       <Footer />
