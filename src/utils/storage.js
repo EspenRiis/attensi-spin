@@ -1,5 +1,6 @@
 import { supabase } from '../lib/supabase';
 import { getCurrentSessionId } from './session';
+import { validateName, validateSessionId, checkRateLimit } from './validation';
 
 const WINNERS_KEY = 'attensi-spin-winners';
 
@@ -17,16 +18,39 @@ export const saveNames = async (names) => {
 // Add a single name to Supabase with session ID
 export const addName = async (name, sessionId = null) => {
   try {
+    // Rate limiting check (200 names per minute - reasonable for large events)
+    const rateLimitKey = `addName_${sessionId || getCurrentSessionId()}`;
+    const rateLimit = checkRateLimit(rateLimitKey, 200, 60000);
+
+    if (!rateLimit.allowed) {
+      const secondsUntilReset = Math.ceil((rateLimit.resetTime - Date.now()) / 1000);
+      throw new Error(`Too many requests. Please wait ${secondsUntilReset} seconds.`);
+    }
+
+    // Validate and sanitize name
+    const validation = validateName(name);
+    if (!validation.valid) {
+      throw new Error(validation.error);
+    }
+
     // Use provided sessionId or get current session
     const session = sessionId || getCurrentSessionId();
     if (!session) {
       throw new Error('No session ID available');
     }
 
+    // Validate session ID format
+    if (!validateSessionId(session)) {
+      throw new Error('Invalid session ID format');
+    }
+
+    // Use sanitized name
+    const sanitizedName = validation.sanitized;
+
     // Check if name already exists using secure function
     const { data: isDuplicate, error: checkError } = await supabase
       .rpc('check_duplicate_name', {
-        p_name: name.trim(),
+        p_name: sanitizedName,
         p_event_id: null,
         p_session_id: session
       });
@@ -39,7 +63,7 @@ export const addName = async (name, sessionId = null) => {
 
     const { data, error } = await supabase
       .from('participants')
-      .insert([{ name: name.trim(), session_id: session }])
+      .insert([{ name: sanitizedName, session_id: session }])
       .select();
 
     if (error) throw error;
@@ -323,10 +347,27 @@ export const restoreWinner = async (eventId, name) => {
 // Add a name to an event (logged-in user adding manually)
 export const addNameToEvent = async (eventId, name) => {
   try {
+    // Rate limiting check (200 names per minute for events)
+    const rateLimitKey = `addNameToEvent_${eventId}`;
+    const rateLimit = checkRateLimit(rateLimitKey, 200, 60000);
+
+    if (!rateLimit.allowed) {
+      const secondsUntilReset = Math.ceil((rateLimit.resetTime - Date.now()) / 1000);
+      throw new Error(`Too many requests. Please wait ${secondsUntilReset} seconds.`);
+    }
+
+    // Validate and sanitize name
+    const validation = validateName(name);
+    if (!validation.valid) {
+      throw new Error(validation.error);
+    }
+
+    const sanitizedName = validation.sanitized;
+
     // Check if name already exists using secure function
     const { data: isDuplicate, error: checkError } = await supabase
       .rpc('check_duplicate_name', {
-        p_name: name.trim(),
+        p_name: sanitizedName,
         p_event_id: eventId,
         p_session_id: null
       });
@@ -339,7 +380,7 @@ export const addNameToEvent = async (eventId, name) => {
 
     const { data, error } = await supabase
       .from('participants')
-      .insert([{ name: name.trim(), event_id: eventId }])
+      .insert([{ name: sanitizedName, event_id: eventId }])
       .select();
 
     if (error) throw error;
