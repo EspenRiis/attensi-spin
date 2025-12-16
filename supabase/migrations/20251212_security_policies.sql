@@ -74,7 +74,7 @@ CREATE POLICY "Authenticated users can view participants in their events"
   USING (
     event_id IS NOT NULL
     AND event_id IN (
-      SELECT id FROM events WHERE user_id = auth.uid()
+      SELECT id FROM events WHERE host_user_id = auth.uid()
     )
   );
 
@@ -85,7 +85,7 @@ CREATE POLICY "Authenticated users can add participants to their events"
   WITH CHECK (
     event_id IS NOT NULL
     AND event_id IN (
-      SELECT id FROM events WHERE user_id = auth.uid()
+      SELECT id FROM events WHERE host_user_id = auth.uid()
     )
     AND name IS NOT NULL
     AND LENGTH(TRIM(name)) > 0
@@ -99,13 +99,13 @@ CREATE POLICY "Authenticated users can update participants in their events"
   USING (
     event_id IS NOT NULL
     AND event_id IN (
-      SELECT id FROM events WHERE user_id = auth.uid()
+      SELECT id FROM events WHERE host_user_id = auth.uid()
     )
   )
   WITH CHECK (
     event_id IS NOT NULL
     AND event_id IN (
-      SELECT id FROM events WHERE user_id = auth.uid()
+      SELECT id FROM events WHERE host_user_id = auth.uid()
     )
   );
 
@@ -116,7 +116,7 @@ CREATE POLICY "Authenticated users can delete participants from their events"
   USING (
     event_id IS NOT NULL
     AND event_id IN (
-      SELECT id FROM events WHERE user_id = auth.uid()
+      SELECT id FROM events WHERE host_user_id = auth.uid()
     )
   );
 
@@ -130,7 +130,7 @@ CREATE POLICY "Users can view winner history for their events"
   FOR SELECT
   USING (
     event_id IN (
-      SELECT id FROM events WHERE user_id = auth.uid()
+      SELECT id FROM events WHERE host_user_id = auth.uid()
     )
   );
 
@@ -140,7 +140,7 @@ CREATE POLICY "Users can create winner history for their events"
   FOR INSERT
   WITH CHECK (
     event_id IN (
-      SELECT id FROM events WHERE user_id = auth.uid()
+      SELECT id FROM events WHERE host_user_id = auth.uid()
     )
   );
 
@@ -153,7 +153,7 @@ CREATE POLICY "Users can view their own events"
   ON events
   FOR SELECT
   USING (
-    user_id = auth.uid()
+    host_user_id = auth.uid()
   );
 
 -- Policy 12: Users can only create events for themselves
@@ -161,7 +161,7 @@ CREATE POLICY "Users can create their own events"
   ON events
   FOR INSERT
   WITH CHECK (
-    user_id = auth.uid()
+    host_user_id = auth.uid()
   );
 
 -- Policy 13: Users can only update their own events
@@ -169,10 +169,10 @@ CREATE POLICY "Users can update their own events"
   ON events
   FOR UPDATE
   USING (
-    user_id = auth.uid()
+    host_user_id = auth.uid()
   )
   WITH CHECK (
-    user_id = auth.uid()
+    host_user_id = auth.uid()
   );
 
 -- Policy 14: Users can only delete their own events
@@ -180,7 +180,7 @@ CREATE POLICY "Users can delete their own events"
   ON events
   FOR DELETE
   USING (
-    user_id = auth.uid()
+    host_user_id = auth.uid()
   );
 
 -- ============================================
@@ -189,44 +189,43 @@ CREATE POLICY "Users can delete their own events"
 
 -- Create a secure function to check for duplicate names
 -- This prevents race conditions and ensures consistent duplicate checking
+-- NOTE: p_session_id is TEXT (not UUID) to match participants.session_id column type
 CREATE OR REPLACE FUNCTION check_duplicate_name(
   p_name TEXT,
   p_event_id UUID DEFAULT NULL,
-  p_session_id UUID DEFAULT NULL
+  p_session_id TEXT DEFAULT NULL
 )
 RETURNS BOOLEAN
 LANGUAGE plpgsql
 SECURITY DEFINER
 AS $$
-DECLARE
-  duplicate_count INTEGER;
 BEGIN
   -- Check for event-based duplicates
   IF p_event_id IS NOT NULL THEN
-    SELECT COUNT(*)
-    INTO duplicate_count
-    FROM participants
-    WHERE event_id = p_event_id
-      AND LOWER(TRIM(name)) = LOWER(TRIM(p_name))
-      AND status = 'active';
+    RETURN EXISTS (
+      SELECT 1 FROM participants
+      WHERE event_id = p_event_id
+        AND LOWER(TRIM(name)) = LOWER(TRIM(p_name))
+        AND status = 'active'
+    );
 
   -- Check for session-based duplicates
   ELSIF p_session_id IS NOT NULL THEN
-    SELECT COUNT(*)
-    INTO duplicate_count
-    FROM participants
-    WHERE session_id = p_session_id
-      AND LOWER(TRIM(name)) = LOWER(TRIM(p_name));
+    RETURN EXISTS (
+      SELECT 1 FROM participants
+      WHERE session_id = p_session_id
+        AND LOWER(TRIM(name)) = LOWER(TRIM(p_name))
+    );
 
   ELSE
     -- No event_id or session_id provided
     RETURN FALSE;
   END IF;
-
-  -- Return TRUE if duplicate exists
-  RETURN duplicate_count > 0;
 END;
 $$;
+
+-- Grant execute permission to anonymous users and authenticated users
+GRANT EXECUTE ON FUNCTION check_duplicate_name(TEXT, UUID, TEXT) TO anon, authenticated;
 
 -- ============================================
 -- DATA RETENTION: Automated Cleanup Function
