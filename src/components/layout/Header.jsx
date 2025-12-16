@@ -58,7 +58,7 @@ const Header = () => {
                 Dashboard
               </button>
               <button onClick={() => navigate('/')} className="nav-link">
-                Spin Wheel
+                Name Roulette
               </button>
               <button onClick={() => navigate('/squad-scramble')} className="nav-link">
                 Squad Scramble
@@ -72,11 +72,11 @@ const Header = () => {
             </>
           ) : (
             <>
-              <button onClick={() => navigate('/login')} className="nav-link">
-                Login
+              <button onClick={() => navigate('/')} className="nav-link">
+                Name Roulette
               </button>
-              <button onClick={() => navigate('/signup')} className="btn-signup">
-                Sign Up
+              <button onClick={() => navigate('/squad-scramble')} className="nav-link">
+                Squad Scramble
               </button>
             </>
           )}

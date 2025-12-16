@@ -11,7 +11,8 @@
 export const VALIDATION_RULES = {
   NAME_MIN_LENGTH: 1,
   NAME_MAX_LENGTH: 50,
-  SESSION_ID_PATTERN: /^[0-9a-f]{8}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{12}$/i,
+  // Accept both UUID format and custom timestamp-based format (timestamp-random)
+  SESSION_ID_PATTERN: /^([0-9a-f]{8}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{12}|[0-9a-z]+-[0-9a-z]+)$/i,
 };
 
 // Characters that are explicitly forbidden in names
