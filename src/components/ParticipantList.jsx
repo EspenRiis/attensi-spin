@@ -6,7 +6,7 @@ const ParticipantList = ({ names, onRemove, onClearAll, winners = [] }) => {
     <div className="participant-list">
       <div className="list-header">
         <h3>Participants</h3>
-        <span className="participant-count">{names.length} {names.length === 1 ? 'person' : 'people'}</span>
+        <span className="participant-list-count">{names.length} {names.length === 1 ? 'person' : 'people'}</span>
       </div>
 
       <div className="list-items">

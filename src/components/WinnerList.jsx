@@ -6,7 +6,7 @@ const WinnerList = ({ winners, onRestore, onRestoreAll }) => {
     <div className="participant-list winner-list">
       <div className="list-header">
         <h3>Winners</h3>
-        <span className="participant-count">{winners.length} {winners.length === 1 ? 'winner' : 'winners'}</span>
+        <span className="participant-list-count">{winners.length} {winners.length === 1 ? 'winner' : 'winners'}</span>
       </div>
 
       <div className="list-items">

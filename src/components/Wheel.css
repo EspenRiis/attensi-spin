@@ -14,26 +14,16 @@
 
 .wheel-pointer {
   position: absolute;
-  top: -15px;
+  top: -25px;
   left: 50%;
   transform: translateX(-50%);
   font-size: 40px;
   color: var(--cyan-bright);
   filter: drop-shadow(0 5px 15px rgba(0, 217, 255, 0.8));
   z-index: 10;
-  animation: bounce 1s ease-in-out infinite;
   text-shadow: 0 0 20px rgba(0, 217, 255, 1),
                0 0 40px rgba(0, 217, 255, 0.8);
-  pointer-events: none; /* Prevents clicking issues */
-}
-
-@keyframes bounce {
-  0%, 100% {
-    transform: translateX(-50%) translateY(0);
-  }
-  50% {
-    transform: translateX(-50%) translateY(-10px);
-  }
+  pointer-events: none;
 }
 
 /* Winner bounce animation - more dramatic */
@@ -70,7 +60,6 @@
 
   .wheel-pointer {
     font-size: 30px;
-    top: -10px;
   }
 }
 

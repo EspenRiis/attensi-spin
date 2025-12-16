@@ -24,7 +24,7 @@
   margin: 0;
 }
 
-.participant-count {
+.participant-list-count {
   background: var(--cyan-bright);
   color: var(--navy-dark);
   padding: 5px 15px;
