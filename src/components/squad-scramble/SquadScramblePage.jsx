@@ -97,9 +97,9 @@ const SquadScramblePage = () => {
   }, [eventId]);
 
   const initializeSessionMode = async () => {
-    if (hasSession()) {
+    if (hasSession('scramble')) {
       // Check if there's existing team generation data
-      const hasData = await hasTeamGenerationData(null, null);
+      const hasData = await hasTeamGenerationData(null, getCurrentSessionId('scramble'));
 
       if (hasData) {
         // Show modal to continue or start fresh - DON'T load data yet
@@ -109,8 +109,8 @@ const SquadScramblePage = () => {
         await checkForWheelParticipants();
       }
     } else {
-      // No session, create a new one
-      createNewSession();
+      // No session, create a new one for Squad Scramble
+      createNewSession('scramble');
       // Check for imports before loading participants
       await checkForWheelParticipants();
     }
@@ -119,17 +119,22 @@ const SquadScramblePage = () => {
   const checkForWheelParticipants = async () => {
     // Check if Squad Scramble is empty AND Name Roulette has participants
     if (participants.length === 0) {
-      const wheelParticipants = await loadParticipantsWithIds();
-      if (wheelParticipants.length > 0) {
-        setWheelParticipantCount(wheelParticipants.length);
-        setShowParticipantImportModal(true);
+      // Load from Name Roulette's session
+      const rouletteSessionId = getCurrentSessionId('roulette');
+      if (rouletteSessionId) {
+        const wheelParticipants = await loadParticipantsWithIds(rouletteSessionId);
+        if (wheelParticipants.length > 0) {
+          setWheelParticipantCount(wheelParticipants.length);
+          setShowParticipantImportModal(true);
+        }
       }
     }
   };
 
   const loadSessionData = async (loadTeams = true) => {
-    // Load participants with real database IDs
-    const participantsFromDB = await loadParticipantsWithIds();
+    // Load participants with real database IDs from Squad Scramble's session
+    const scrambleSessionId = getCurrentSessionId('scramble');
+    const participantsFromDB = await loadParticipantsWithIds(scrambleSessionId);
     setParticipants(participantsFromDB);
 
     // Try to load existing team generation
@@ -196,10 +201,20 @@ const loadEventData = async (evtId, isInitialLoad = false) => {
   // Participant Import Modal Handlers
   const handleImportParticipants = async () => {
     setShowParticipantImportModal(false);
-    // Load participants from Name Roulette
-    const wheelParticipants = await loadParticipantsWithIds();
-    setParticipants(wheelParticipants);
-    showToastMessage(`Imported ${wheelParticipants.length} participants from Name Roulette!`);
+    // Load participants from Name Roulette's session and copy to Squad Scramble's session
+    const rouletteSessionId = getCurrentSessionId('roulette');
+    const wheelParticipants = await loadParticipantsWithIds(rouletteSessionId);
+
+    // Copy each participant to Squad Scramble's session
+    const scrambleSessionId = getCurrentSessionId('scramble');
+    for (const participant of wheelParticipants) {
+      await addName(participant.name, scrambleSessionId);
+    }
+
+    // Reload participants from Squad Scramble's session
+    const scrambleParticipants = await loadParticipantsWithIds(scrambleSessionId);
+    setParticipants(scrambleParticipants);
+    showToastMessage(`Imported ${scrambleParticipants.length} participants from Name Roulette!`);
   };
 
   const handleStartEmpty = async () => {
@@ -212,7 +227,8 @@ const loadEventData = async (evtId, isInitialLoad = false) => {
   const handleClearAllParticipants = async () => {
     if (window.confirm(`Clear all ${participants.length} participants?`)) {
       const { clearNames } = await import('../../utils/storage');
-      await clearNames();
+      const scrambleSessionId = getCurrentSessionId('scramble');
+      await clearNames(scrambleSessionId);
       setParticipants([]);
       setTeams([]); // Also clear any generated teams
       showToastMessage('All participants cleared!');

@@ -58,7 +58,7 @@ export const addName = async (name, sessionId = null) => {
     if (checkError) throw checkError;
 
     if (isDuplicate) {
-      throw new Error('This name is already in the list!');
+      throw new Error('Name already in the list. Please use a variation (e.g., "John S.")');
     }
 
     const { data, error } = await supabase
@@ -375,7 +375,7 @@ export const addNameToEvent = async (eventId, name) => {
     if (checkError) throw checkError;
 
     if (isDuplicate) {
-      throw new Error('Name already in the wheel!');
+      throw new Error('Name already in the list. Please use a variation (e.g., "John S.")');
     }
 
     const { data, error } = await supabase

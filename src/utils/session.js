@@ -1,6 +1,11 @@
 // Session management for isolating user data
 
-const SESSION_KEY = 'attensi-spin-session-id';
+// Feature-specific session keys
+const SESSION_KEYS = {
+  roulette: 'attensi-spin-session-id-roulette',
+  scramble: 'attensi-spin-session-id-scramble',
+  default: 'attensi-spin-session-id' // Legacy key for backwards compatibility
+};
 
 /**
  * Generate a unique session ID
@@ -13,12 +18,21 @@ export const generateSessionId = () => {
 };
 
 /**
+ * Get the session key for a specific feature
+ * @param {string} feature - 'roulette', 'scramble', or null for default
+ */
+const getSessionKey = (feature = null) => {
+  return SESSION_KEYS[feature] || SESSION_KEYS.default;
+};
+
+/**
  * Get the current session ID from localStorage
+ * @param {string} feature - Optional feature name ('roulette', 'scramble')
  * Returns null if no session exists
  */
-export const getCurrentSessionId = () => {
+export const getCurrentSessionId = (feature = null) => {
   try {
-    return localStorage.getItem(SESSION_KEY);
+    return localStorage.getItem(getSessionKey(feature));
   } catch (error) {
     console.error('Error reading session ID:', error);
     return null;
@@ -27,12 +41,13 @@ export const getCurrentSessionId = () => {
 
 /**
  * Create a new session and store it in localStorage
+ * @param {string} feature - Optional feature name ('roulette', 'scramble')
  * Returns the new session ID
  */
-export const createNewSession = () => {
+export const createNewSession = (feature = null) => {
   const sessionId = generateSessionId();
   try {
-    localStorage.setItem(SESSION_KEY, sessionId);
+    localStorage.setItem(getSessionKey(feature), sessionId);
     return sessionId;
   } catch (error) {
     console.error('Error creating session:', error);
@@ -42,10 +57,11 @@ export const createNewSession = () => {
 
 /**
  * Clear the current session from localStorage
+ * @param {string} feature - Optional feature name ('roulette', 'scramble')
  */
-export const clearSession = () => {
+export const clearSession = (feature = null) => {
   try {
-    localStorage.removeItem(SESSION_KEY);
+    localStorage.removeItem(getSessionKey(feature));
   } catch (error) {
     console.error('Error clearing session:', error);
   }
@@ -53,7 +69,8 @@ export const clearSession = () => {
 
 /**
  * Check if a session exists in localStorage
+ * @param {string} feature - Optional feature name ('roulette', 'scramble')
  */
-export const hasSession = () => {
-  return getCurrentSessionId() !== null;
+export const hasSession = (feature = null) => {
+  return getCurrentSessionId(feature) !== null;
 };

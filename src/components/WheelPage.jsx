@@ -80,9 +80,9 @@ const WheelPage = () => {
   }, [eventId]);
 
   const initializeSessionMode = async () => {
-    if (hasSession()) {
+    if (hasSession('roulette')) {
       // Check if there's data in this session
-      const hasData = await hasStoredData();
+      const hasData = await hasStoredData(getCurrentSessionId('roulette'));
 
       if (hasData) {
         // Show modal to continue or start fresh - DON'T load data yet
@@ -93,8 +93,8 @@ const WheelPage = () => {
         await checkForSquadParticipants();
       }
     } else {
-      // No session, create a new one
-      createNewSession();
+      // No session, create a new one for Name Roulette
+      createNewSession('roulette');
       await loadInitialData();
     }
   };
@@ -102,10 +102,13 @@ const WheelPage = () => {
   const checkForSquadParticipants = async () => {
     // Check if Name Roulette is empty AND Squad Scramble has participants
     if (names.length === 0) {
-      const squadParticipants = await loadParticipantsWithIds();
-      if (squadParticipants.length > 0) {
-        setSquadParticipantCount(squadParticipants.length);
-        setShowParticipantImportModal(true);
+      const scrambleSessionId = getCurrentSessionId('scramble');
+      if (scrambleSessionId) {
+        const squadParticipants = await loadParticipantsWithIds(scrambleSessionId);
+        if (squadParticipants.length > 0) {
+          setSquadParticipantCount(squadParticipants.length);
+          setShowParticipantImportModal(true);
+        }
       }
     }
   };
@@ -179,8 +182,8 @@ const WheelPage = () => {
         supabase.removeChannel(channel);
       };
     } else {
-      // Session mode: Subscribe to session_id changes
-      const sessionId = getCurrentSessionId();
+      // Session mode: Subscribe to session_id changes (Name Roulette)
+      const sessionId = getCurrentSessionId('roulette');
       if (!sessionId) {
         console.warn('⚠️ No session ID found for subscription');
         return;
@@ -215,7 +218,8 @@ const WheelPage = () => {
   }, [isEventMode, currentEventId]);
 
   const loadInitialData = async () => {
-    const namesFromDB = await loadNames();
+    const rouletteSessionId = getCurrentSessionId('roulette');
+    const namesFromDB = await loadNames(rouletteSessionId);
     setNames(namesFromDB);
 
     const savedWinners = loadWinners();
@@ -224,6 +228,24 @@ const WheelPage = () => {
 
   // Participant Import Modal Handlers
   const handleImportFromSquad = async () => {
+    setShowParticipantImportModal(false);
+    // Load from Squad Scramble's session and copy to Name Roulette's session
+    const scrambleSessionId = getCurrentSessionId('scramble');
+    const squadParticipants = await loadParticipantsWithIds(scrambleSessionId);
+
+    // Copy each participant to Name Roulette's session
+    const rouletteSessionId = getCurrentSessionId('roulette');
+    for (const participant of squadParticipants) {
+      await addName(participant.name, rouletteSessionId);
+    }
+
+    // Reload from Name Roulette's session
+    const namesFromDB = await loadNames(rouletteSessionId);
+    setNames(namesFromDB);
+    showToastMessage(`Imported ${squadParticipants.length} participants from Squad Scramble!`);
+  };
+
+  const handleStartWithoutImport = () => {
     setShowParticipantImportModal(false);
     // Participants are already loaded from the same session, just close modal
     showToastMessage(`Imported ${squadParticipantCount} participants from Squad Scramble!`);
@@ -253,12 +275,13 @@ const WheelPage = () => {
   };
 
   const handleStartFresh = async () => {
-    // Clear the old session data
-    await clearNames();
-    clearSession();
+    // Clear the old session data for Name Roulette
+    const rouletteSessionId = getCurrentSessionId('roulette');
+    await clearNames(rouletteSessionId);
+    clearSession('roulette');
 
-    // Create new session
-    createNewSession();
+    // Create new session for Name Roulette
+    createNewSession('roulette');
 
     // Reset state
     setNames([]);

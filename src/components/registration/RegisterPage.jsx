@@ -153,7 +153,7 @@ const RegisterPage = () => {
       }
 
       if (isDuplicate) {
-        throw new Error('Name already in the wheel. Please use a variation (e.g., "John S.")');
+        throw new Error('Name already in the list. Please use a variation (e.g., "John S.")');
       }
 
       const { error: insertError } = await supabase
