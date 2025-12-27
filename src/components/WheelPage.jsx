@@ -96,6 +96,8 @@ const WheelPage = () => {
       // No session, create a new one for Name Roulette
       createNewSession('roulette');
       await loadInitialData();
+      // Check for Squad Scramble imports after creating new session
+      await checkForSquadParticipants();
     }
   };
 
@@ -202,7 +204,7 @@ const WheelPage = () => {
           },
           async (payload) => {
             console.log('✅ Real-time update (session mode):', payload);
-            const updatedNames = await loadNames();
+            const updatedNames = await loadNames(sessionId);
             setNames(updatedNames);
           }
         )
@@ -254,14 +256,14 @@ const WheelPage = () => {
   const handleStartEmptyWheel = async () => {
     setShowParticipantImportModal(false);
     // Clear any existing participants
-    await clearNames();
+    await clearNames(getCurrentSessionId('roulette'));
     setNames([]);
     showToastMessage('Ready to add participants manually!');
   };
 
   const handleClearAllParticipants = async () => {
     if (window.confirm(`Clear all ${names.length} participants?`)) {
-      await clearNames();
+      await clearNames(getCurrentSessionId('roulette'));
       setNames([]);
       setWinners([]);
       setRemovedWinners([]);
@@ -290,6 +292,9 @@ const WheelPage = () => {
 
     // Load new session
     await loadInitialData();
+
+    // Check for Squad Scramble imports after starting fresh
+    await checkForSquadParticipants();
   };
 
   // Event Winners Modal handlers
@@ -349,7 +354,7 @@ const WheelPage = () => {
     if (inputName.trim() && !names.includes(inputName.trim())) {
       const result = isEventMode
         ? await addNameToEvent(currentEventId, inputName.trim())
-        : await addName(inputName.trim());
+        : await addName(inputName.trim(), getCurrentSessionId('roulette'));
 
       if (result.success) {
         // Optimistically update local state immediately
@@ -367,7 +372,7 @@ const WheelPage = () => {
   const handleRemoveName = async (nameToRemove) => {
     const result = isEventMode
       ? await removeNameFromEvent(currentEventId, nameToRemove)
-      : await removeName(nameToRemove);
+      : await removeName(nameToRemove, getCurrentSessionId('roulette'));
 
     if (result.success) {
       // Immediately update local state - remove from participants list
@@ -451,7 +456,7 @@ const WheelPage = () => {
         await markParticipantAsWinner(currentEventId, winner);
       } else {
         // Session mode: remove from database
-        await removeName(winner);
+        await removeName(winner, getCurrentSessionId('roulette'));
       }
 
       // Move winner to removedWinners list (shown in Winners section)
@@ -491,8 +496,9 @@ const WheelPage = () => {
     // In event mode, winners are already marked in DB when they won
     // In session mode, we need to remove them from the database
     if (!isEventMode) {
+      const rouletteSessionId = getCurrentSessionId('roulette');
       for (const winner of winners) {
-        await removeName(winner);
+        await removeName(winner, rouletteSessionId);
       }
     }
 
@@ -518,7 +524,7 @@ const WheelPage = () => {
       // Real-time subscription will handle adding back to names list
     } else {
       // Session mode: re-add participant to database
-      const result = await addName(name);
+      const result = await addName(name, getCurrentSessionId('roulette'));
       if (result.success) {
         // Optimistically update local state
         setNames(prevNames => [...prevNames, name]);
@@ -544,8 +550,9 @@ const WheelPage = () => {
     } else {
       // Session mode: re-add all participants to database
       const restoredNames = [];
+      const rouletteSessionId = getCurrentSessionId('roulette');
       for (const winner of removedWinners) {
-        const result = await addName(winner);
+        const result = await addName(winner, rouletteSessionId);
         if (result.success) {
           restoredNames.push(winner);
         }

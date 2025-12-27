@@ -232,6 +232,9 @@ const loadEventData = async (evtId, isInitialLoad = false) => {
       setParticipants([]);
       setTeams([]); // Also clear any generated teams
       showToastMessage('All participants cleared!');
+
+      // Check for Name Roulette imports after clearing
+      await checkForWheelParticipants();
     }
   };
 
@@ -299,19 +302,17 @@ const loadEventData = async (evtId, isInitialLoad = false) => {
     e.preventDefault();
 
     if (inputName.trim() && !participants.find(p => p.name === inputName.trim())) {
+      const scrambleSessionId = getCurrentSessionId('scramble');
       const result = isEventMode
         ? await addNameToEvent(currentEventId, inputName.trim())
-        : await addName(inputName.trim());
+        : await addName(inputName.trim(), scrambleSessionId);
 
       if (result.success) {
         // Reload participants to get real database IDs
-        if (isEventMode) {
-          const participantsFromDB = await loadParticipantsWithIdsFromEvent(currentEventId);
-          setParticipants(participantsFromDB);
-        } else {
-          const participantsFromDB = await loadParticipantsWithIds();
-          setParticipants(participantsFromDB);
-        }
+        const participantsFromDB = isEventMode
+          ? await loadParticipantsWithIdsFromEvent(currentEventId)
+          : await loadParticipantsWithIds(scrambleSessionId);
+        setParticipants(participantsFromDB);
         setInputName('');
         showToastMessage(`${inputName.trim()} added!`);
       } else {
