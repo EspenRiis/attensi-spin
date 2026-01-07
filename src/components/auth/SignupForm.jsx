@@ -195,7 +195,6 @@ const SignupForm = () => {
         </motion.div>
 
         <footer className="signup-footer">
-          <p>Powered by Attensi</p>
         </footer>
       </div>
     </div>

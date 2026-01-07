@@ -29,7 +29,7 @@ const AddName = ({ onAddName }) => {
         animate={{ opacity: 1, scale: 1 }}
       >
         <div className="add-name-header">
-          <h1 className="glow-text">ATTENSI SPIN</h1>
+          <h1 className="glow-text">SESSIONKIT</h1>
           <p className="subtitle">Add Your Name</p>
         </div>
 
@@ -62,7 +62,6 @@ const AddName = ({ onAddName }) => {
         )}
 
         <div className="add-name-footer">
-          <p>Powered by Attensi</p>
         </div>
       </motion.div>
     </div>

@@ -102,7 +102,6 @@ const CreateEventModal = ({ isOpen, onClose, onSuccess }) => {
                     <p>Thank you for participating!</p>
                   </div>
                   <div class="footer">
-                    <p>Powered by Attensi</p>
                   </div>
                 </div>
               </body>
@@ -137,7 +136,6 @@ const CreateEventModal = ({ isOpen, onClose, onSuccess }) => {
                     <p>Stay tuned for future events and opportunities!</p>
                   </div>
                   <div class="footer">
-                    <p>Powered by Attensi</p>
                   </div>
                 </div>
               </body>

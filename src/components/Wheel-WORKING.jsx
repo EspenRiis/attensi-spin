@@ -125,7 +125,7 @@ const Wheel = ({ names, onSpinComplete, isSpinning }) => {
     ctx.font = 'bold 18px Arial';
     ctx.textAlign = 'center';
     ctx.textBaseline = 'middle';
-    ctx.fillText('ATTENSI', centerX, centerY);
+    ctx.fillText('SK', centerX, centerY);
   };
 
   const spinWheel = () => {

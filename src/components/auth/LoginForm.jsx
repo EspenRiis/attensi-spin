@@ -141,7 +141,6 @@ const LoginForm = () => {
         </motion.div>
 
         <footer className="login-footer">
-          <p>Powered by Attensi</p>
         </footer>
       </div>
     </div>

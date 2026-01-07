@@ -273,7 +273,6 @@ const ResetPasswordForm = () => {
         </motion.div>
 
         <footer className="reset-password-footer">
-          <p>Powered by Attensi</p>
         </footer>
       </div>
     </div>
