@@ -1,0 +1,156 @@
+.quiz-race-view {
+  position: relative;
+  width: 100%;
+  height: 100vh;
+  overflow: hidden;
+  background: #0a0a15;
+}
+
+.race-canvas-container {
+  width: 100%;
+  height: 100%;
+}
+
+.race-canvas-container canvas {
+  display: block;
+  width: 100%;
+  height: 100%;
+}
+
+.race-hud {
+  position: absolute;
+  top: 0;
+  left: 0;
+  right: 0;
+  bottom: 0;
+  pointer-events: none;
+  z-index: 10;
+  padding: 20px;
+}
+
+.race-info {
+  background: rgba(0, 0, 0, 0.7);
+  padding: 15px 20px;
+  border-radius: 10px;
+  color: white;
+  backdrop-filter: blur(10px);
+  pointer-events: auto;
+  display: inline-block;
+}
+
+.race-info h3 {
+  margin: 0 0 5px 0;
+  font-size: 24px;
+  font-weight: bold;
+}
+
+.race-info p {
+  margin: 3px 0;
+  font-size: 14px;
+  opacity: 0.8;
+}
+
+.race-leaderboard {
+  position: absolute;
+  top: 20px;
+  right: 20px;
+  background: rgba(0, 0, 0, 0.8);
+  padding: 15px 20px;
+  border-radius: 10px;
+  min-width: 250px;
+  backdrop-filter: blur(10px);
+  pointer-events: auto;
+}
+
+.race-leaderboard h4 {
+  margin: 0 0 15px 0;
+  color: white;
+  font-size: 18px;
+  font-weight: bold;
+  text-transform: uppercase;
+  letter-spacing: 1px;
+}
+
+.leaderboard-item {
+  display: flex;
+  align-items: center;
+  padding: 8px 0;
+  color: white;
+  border-bottom: 1px solid rgba(255, 255, 255, 0.1);
+}
+
+.leaderboard-item:last-child {
+  border-bottom: none;
+}
+
+.leaderboard-item .position {
+  width: 30px;
+  font-weight: bold;
+  font-size: 18px;
+  color: #ffd700;
+}
+
+.leaderboard-item:nth-child(2) .position {
+  color: #c0c0c0;
+}
+
+.leaderboard-item:nth-child(3) .position {
+  color: #cd7f32;
+}
+
+.leaderboard-item .name {
+  flex: 1;
+  margin: 0 10px;
+  font-size: 14px;
+}
+
+.leaderboard-item .score {
+  font-weight: bold;
+  font-size: 16px;
+  color: #4ade80;
+}
+
+/* Mobile responsive */
+@media (max-width: 768px) {
+  .race-hud {
+    padding: 10px;
+  }
+
+  .race-info {
+    padding: 10px 15px;
+  }
+
+  .race-info h3 {
+    font-size: 18px;
+  }
+
+  .race-info p {
+    font-size: 12px;
+  }
+
+  .race-leaderboard {
+    top: auto;
+    bottom: 20px;
+    right: 10px;
+    min-width: 200px;
+    padding: 10px 15px;
+  }
+
+  .race-leaderboard h4 {
+    font-size: 16px;
+    margin-bottom: 10px;
+  }
+
+  .leaderboard-item .position {
+    width: 25px;
+    font-size: 16px;
+  }
+
+  .leaderboard-item .name {
+    font-size: 12px;
+  }
+
+  .leaderboard-item .score {
+    font-size: 14px;
+  }
+}

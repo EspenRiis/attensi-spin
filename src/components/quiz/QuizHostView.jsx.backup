@@ -7,6 +7,7 @@ import Leaderboard from './Leaderboard';
 import QuestionDisplay from './QuestionDisplay';
 import HostControls from './HostControls';
 import AnswerDistribution from './AnswerDistribution';
+import QuizRaceView from './QuizRaceView';
 import './QuizHostView.css';
 
 const QuizHostView = () => {
@@ -22,6 +23,7 @@ const QuizHostView = () => {
   const [loading, setLoading] = useState(true);
   const [showQuestion, setShowQuestion] = useState(false);
   const [answerRevealed, setAnswerRevealed] = useState(false);
+  const [show3DView, setShow3DView] = useState(false);
 
   // Get current user
   useEffect(() => {
@@ -114,11 +116,11 @@ const QuizHostView = () => {
   // Handle question display with 3-second delay
   useEffect(() => {
     if (gameState.currentQuestion) {
-      // Start with question hidden
-      setShowQuestion(false);
+      // First show just the question
+      setShowQuestion(true);
       setAnswerRevealed(false);
 
-      // After 3 seconds, show the question
+      // After 3 seconds, show the answer options
       const timer = setTimeout(() => {
         setShowQuestion(true);
       }, 3000);
@@ -204,10 +206,6 @@ const QuizHostView = () => {
     );
   }
 
-  const handleSwitch3D = () => {
-    navigate(`/quiz-race/${sessionId}/host-racing`, { state: { autoReveal, quiz } });
-  };
-
   return (
     <div className="quiz-host-view">
       {/* Top Bar */}
@@ -218,26 +216,77 @@ const QuizHostView = () => {
             {gameState.status === 'in_progress' ? '🎮 Live' : '⏸️ Waiting'}
           </span>
         </div>
-        <button
-          className="view-switch-btn"
-          onClick={handleSwitch3D}
-          title="Switch to 3D Racing View"
-        >
-          🏎️ 3D View
-        </button>
+
+        {/* View Toggle */}
+        <div className="view-toggle">
+          <button
+            className={`toggle-btn ${!show3DView ? 'active' : ''}`}
+            onClick={() => setShow3DView(false)}
+            title="2D Leaderboard View"
+          >
+            📊 2D
+          </button>
+          <button
+            className={`toggle-btn ${show3DView ? 'active' : ''}`}
+            onClick={() => setShow3DView(true)}
+            title="3D Racing View"
+          >
+            🏎️ 3D
+          </button>
+        </div>
       </div>
 
       <div className="host-content">
-        {/* Left: Leaderboard (30%) */}
-        <div className="leaderboard-section">
-          <Leaderboard
-            leaderboard={gameState.leaderboard}
-            highlightChanges={answerRevealed}
-          />
-        </div>
+        {show3DView ? (
+          /* 3D Racing View - Full Screen */
+          <div className="racing-view-container">
+            <QuizRaceView
+              sessionId={sessionId}
+              gameState={gameState}
+              players={gameState.leaderboard || []}
+            />
 
-        {/* Right: Question & Controls (70%) */}
-        <div className="gameplay-section">
+            {/* Overlay Question and Controls */}
+            <div className="racing-overlay">
+              {gameState.currentQuestion && (
+                <div className="overlay-question">
+                  <QuestionDisplay
+                    question={gameState.currentQuestion}
+                    currentQuestionIndex={gameState.currentQuestionIndex}
+                    totalQuestions={gameState.totalQuestions}
+                    timeLimit={gameState.currentQuestion.time_limit}
+                    onTimeExpired={handleTimeExpired}
+                    showAnswers={showQuestion}
+                    compact={true}
+                  />
+                </div>
+              )}
+
+              <div className="overlay-controls">
+                <HostControls
+                  onRevealAnswer={handleRevealAnswer}
+                  onNextQuestion={handleNextQuestion}
+                  onExitToLobby={handleExitToLobby}
+                  showReveal={!answerRevealed}
+                  showNext={answerRevealed}
+                  answerRevealed={answerRevealed}
+                />
+              </div>
+            </div>
+          </div>
+        ) : (
+          /* Traditional 2D View */
+          <>
+            {/* Left: Leaderboard (30%) */}
+            <div className="leaderboard-section">
+              <Leaderboard
+                leaderboard={gameState.leaderboard}
+                highlightChanges={answerRevealed}
+              />
+            </div>
+
+            {/* Right: Question & Controls (70%) */}
+            <div className="gameplay-section">
           {gameState.currentQuestion ? (
             <>
               {/* Question Display */}
@@ -314,7 +363,9 @@ const QuizHostView = () => {
               </motion.div>
             </div>
           )}
-        </div>
+            </div>
+          </>
+        )}
       </div>
     </div>
   );

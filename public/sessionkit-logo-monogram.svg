@@ -1,0 +1,16 @@
+<svg width="200" height="200" viewBox="0 0 200 200" fill="none" xmlns="http://www.w3.org/2000/svg">
+  <!-- Background circle -->
+  <circle cx="100" cy="100" r="90" fill="#8B5CF6"/>
+  
+  <!-- SK Monogram in white -->
+  <text x="100" y="130" 
+        font-family="Arial, sans-serif" 
+        font-size="90" 
+        font-weight="700" 
+        fill="white" 
+        text-anchor="middle"
+        letter-spacing="-5">SK</text>
+  
+  <!-- Small connecting element between letters -->
+  <circle cx="100" cy="105" r="4" fill="#4ECDC4"/>
+</svg>

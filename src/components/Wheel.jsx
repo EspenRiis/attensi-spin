@@ -4,6 +4,10 @@ import confetti from 'canvas-confetti';
 import { generateSegmentColors } from '../utils/colors';
 import './Wheel.css';
 
+// Load logo image
+const logoImage = new Image();
+logoImage.src = '/sessionkit-logo-monogram.svg';
+
 const Wheel = ({ names, onSpinComplete, isSpinning, clearWinner }) => {
   const canvasRef = useRef(null);
   const [rotation, setRotation] = useState(0);
@@ -215,11 +219,17 @@ const Wheel = ({ names, onSpinComplete, isSpinning, clearWinner }) => {
     ctx.lineWidth = 3;
     ctx.stroke();
 
-    ctx.fillStyle = '#00D9FF';
-    ctx.font = 'bold 18px Arial';
-    ctx.textAlign = 'center';
-    ctx.textBaseline = 'middle';
-    ctx.fillText('ATTENSI', centerX, centerY);
+    // Draw logo in center
+    if (logoImage.complete) {
+      const logoSize = 120;
+      ctx.drawImage(
+        logoImage,
+        centerX - logoSize / 2,
+        centerY - logoSize / 2,
+        logoSize,
+        logoSize
+      );
+    }
   };
 
   const spinWheel = () => {

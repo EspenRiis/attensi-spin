@@ -100,6 +100,14 @@ export const useQuizGame = (sessionId, userId) => {
       }));
     });
 
+    newSocket.on('leaderboard_update', (data) => {
+      console.log('📊 Leaderboard updated:', data);
+      setGameState((prev) => ({
+        ...prev,
+        leaderboard: data.leaderboard,
+      }));
+    });
+
     newSocket.on('next_question', (data) => {
       console.log('➡️ Next question:', data);
       setGameState((prev) => ({

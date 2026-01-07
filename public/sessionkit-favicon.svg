@@ -1,0 +1,21 @@
+<svg width="32" height="32" viewBox="0 0 32 32" fill="none" xmlns="http://www.w3.org/2000/svg">
+  <!-- Simplified version for favicon -->
+  <rect width="32" height="32" rx="6" fill="#8B5CF6"/>
+  
+  <!-- Circle (Name Roulette) -->
+  <circle cx="11" cy="11" r="4.5" fill="white" opacity="0.95"/>
+  
+  <!-- Grid (Squad Scramble) -->
+  <rect x="19" y="7" width="4" height="4" rx="0.5" fill="white" opacity="0.95"/>
+  <rect x="24" y="7" width="4" height="4" rx="0.5" fill="white" opacity="0.95"/>
+  <rect x="19" y="12" width="4" height="4" rx="0.5" fill="white" opacity="0.95"/>
+  <rect x="24" y="12" width="4" height="4" rx="0.5" fill="white" opacity="0.95"/>
+  
+  <!-- Chart line (Quiz Race) -->
+  <path d="M 6 26 L 10 22 L 14 24 L 18 19 L 22 21 L 26 16" 
+        stroke="white" 
+        stroke-width="2" 
+        stroke-linecap="round" 
+        stroke-linejoin="round" 
+        opacity="0.95"/>
+</svg>

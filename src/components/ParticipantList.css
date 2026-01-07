@@ -80,8 +80,9 @@
 }
 
 .list-item {
-  display: flex;
-  align-items: center;
+  display: flex !important;
+  flex-direction: row !important;
+  align-items: center !important;
   gap: 12px;
   padding: 12px;
   margin-bottom: 8px;
@@ -89,6 +90,7 @@
   border: 1px solid rgba(255, 255, 255, 0.1);
   border-radius: 10px;
   transition: all 0.3s ease;
+  flex-wrap: nowrap;
 }
 
 .list-item:hover {
@@ -103,7 +105,7 @@
 }
 
 .item-number {
-  display: flex;
+  display: inline-flex;
   align-items: center;
   justify-content: center;
   width: 28px;
@@ -114,10 +116,12 @@
   font-size: 14px;
   color: var(--cyan-bright);
   flex-shrink: 0;
+  flex-grow: 0;
 }
 
 .item-name {
   flex: 1;
+  min-width: 0;
   font-size: 16px;
   color: var(--white);
   overflow: hidden;
@@ -128,6 +132,8 @@
 .winner-badge {
   font-size: 20px;
   animation: pulse 2s ease-in-out infinite;
+  flex-shrink: 0;
+  flex-grow: 0;
 }
 
 .item-remove {
@@ -138,12 +144,15 @@
   color: #FF4444;
   font-size: 24px;
   font-weight: 600;
-  display: flex;
+  display: inline-flex;
   align-items: center;
   justify-content: center;
   flex-shrink: 0;
+  flex-grow: 0;
   line-height: 1;
   padding: 0;
+  border: none;
+  cursor: pointer;
 }
 
 .item-remove:hover {

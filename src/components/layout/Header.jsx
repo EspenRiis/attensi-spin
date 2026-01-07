@@ -46,8 +46,8 @@ const Header = () => {
       <div className="header-container">
         <div className="header-left">
           <button onClick={() => navigate('/')} className="logo-btn">
-            <span className="logo-icon">🎡</span>
-            <span className="logo-text">Name Roulette</span>
+            <img src="/sessionkit-logo-monogram.svg" alt="SessionKit" className="logo-icon" style={{ width: '32px', height: '32px' }} />
+            <span className="logo-text">SessionKit</span>
           </button>
         </div>
 
@@ -57,10 +57,10 @@ const Header = () => {
               <button onClick={() => navigate('/dashboard')} className="nav-link">
                 Dashboard
               </button>
-              <button onClick={() => navigate('/')} className="nav-link">
+              <button onClick={() => navigate('/nameroulette')} className="nav-link">
                 Name Roulette
               </button>
-              <button onClick={() => navigate('/squad-scramble')} className="nav-link">
+              <button onClick={() => navigate('/squadscramble')} className="nav-link">
                 Squad Scramble
               </button>
               <div className="user-menu">
@@ -72,10 +72,10 @@ const Header = () => {
             </>
           ) : (
             <>
-              <button onClick={() => navigate('/')} className="nav-link">
+              <button onClick={() => navigate('/nameroulette')} className="nav-link">
                 Name Roulette
               </button>
-              <button onClick={() => navigate('/squad-scramble')} className="nav-link">
+              <button onClick={() => navigate('/squadscramble')} className="nav-link">
                 Squad Scramble
               </button>
             </>

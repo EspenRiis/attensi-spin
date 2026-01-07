@@ -16,11 +16,9 @@ import {
 } from '../../utils/teamStorage';
 import {
   addName,
-  loadNames,
   removeName,
   addNameToEvent,
   removeNameFromEvent,
-  loadParticipantsFromEvent,
   loadParticipantsWithIds,
   loadParticipantsWithIdsFromEvent,
   archiveAllParticipants
@@ -32,7 +30,6 @@ import ParticipantList from '../ParticipantList';
 import QRCodePanel from '../QRCodePanel';
 import SessionRestoreModal from '../shared/SessionRestoreModal';
 import EventDataModal from '../shared/EventDataModal';
-import ParticipantImportModal from '../shared/ParticipantImportModal';
 import './SquadScramblePage.css';
 
 const SquadScramblePage = () => {
@@ -69,9 +66,7 @@ const SquadScramblePage = () => {
   // Modal state
   const [showSessionRestoreModal, setShowSessionRestoreModal] = useState(false);
   const [showEventDataModal, setShowEventDataModal] = useState(false);
-  const [showParticipantImportModal, setShowParticipantImportModal] = useState(false);
   const [existingTeamsCount, setExistingTeamsCount] = useState(0);
-  const [wheelParticipantCount, setWheelParticipantCount] = useState(0);
 
   // Initialize: Check auth state and eventId parameter
   useEffect(() => {
@@ -105,29 +100,14 @@ const SquadScramblePage = () => {
         // Show modal to continue or start fresh - DON'T load data yet
         setShowSessionRestoreModal(true);
       } else {
-        // Has session but no team data, check for imports BEFORE loading
-        await checkForWheelParticipants();
+        // Auto-load existing participants
+        const scrambleSessionId = getCurrentSessionId('scramble');
+        const participantsFromDB = await loadParticipantsWithIds(scrambleSessionId);
+        setParticipants(participantsFromDB);
       }
     } else {
       // No session, create a new one for Squad Scramble
       createNewSession('scramble');
-      // Check for imports before loading participants
-      await checkForWheelParticipants();
-    }
-  };
-
-  const checkForWheelParticipants = async () => {
-    // Check if Squad Scramble is empty AND Name Roulette has participants
-    if (participants.length === 0) {
-      // Load from Name Roulette's session
-      const rouletteSessionId = getCurrentSessionId('roulette');
-      if (rouletteSessionId) {
-        const wheelParticipants = await loadParticipantsWithIds(rouletteSessionId);
-        if (wheelParticipants.length > 0) {
-          setWheelParticipantCount(wheelParticipants.length);
-          setShowParticipantImportModal(true);
-        }
-      }
     }
   };
 
@@ -198,32 +178,6 @@ const loadEventData = async (evtId, isInitialLoad = false) => {
     setTimeout(() => setShowToast(false), 3000);
   };
 
-  // Participant Import Modal Handlers
-  const handleImportParticipants = async () => {
-    setShowParticipantImportModal(false);
-    // Load participants from Name Roulette's session and copy to Squad Scramble's session
-    const rouletteSessionId = getCurrentSessionId('roulette');
-    const wheelParticipants = await loadParticipantsWithIds(rouletteSessionId);
-
-    // Copy each participant to Squad Scramble's session
-    const scrambleSessionId = getCurrentSessionId('scramble');
-    for (const participant of wheelParticipants) {
-      await addName(participant.name, scrambleSessionId);
-    }
-
-    // Reload participants from Squad Scramble's session
-    const scrambleParticipants = await loadParticipantsWithIds(scrambleSessionId);
-    setParticipants(scrambleParticipants);
-    showToastMessage(`Imported ${scrambleParticipants.length} participants from Name Roulette!`);
-  };
-
-  const handleStartEmpty = async () => {
-    setShowParticipantImportModal(false);
-    // Don't load any participants, start with empty list
-    setParticipants([]);
-    showToastMessage('Ready to add participants manually!');
-  };
-
   const handleClearAllParticipants = async () => {
     if (window.confirm(`Clear all ${participants.length} participants?`)) {
       const { clearNames } = await import('../../utils/storage');
@@ -232,9 +186,6 @@ const loadEventData = async (evtId, isInitialLoad = false) => {
       setParticipants([]);
       setTeams([]); // Also clear any generated teams
       showToastMessage('All participants cleared!');
-
-      // Check for Name Roulette imports after clearing
-      await checkForWheelParticipants();
     }
   };
 
@@ -451,20 +402,6 @@ const loadEventData = async (evtId, isInitialLoad = false) => {
               else if (value === 'regenerate') handleClearAndRegenerate();
               else if (value === 'empty') handleStartEmptyEvent();
             }}
-          />
-        )}
-      </AnimatePresence>
-
-      {/* Participant Import Modal */}
-      <AnimatePresence>
-        {showParticipantImportModal && (
-          <ParticipantImportModal
-            title="Welcome Back!"
-            participantCount={wheelParticipantCount}
-            sourceTool="Name Roulette"
-            icon="🔄"
-            onImport={handleImportParticipants}
-            onStartEmpty={handleStartEmpty}
           />
         )}
       </AnimatePresence>

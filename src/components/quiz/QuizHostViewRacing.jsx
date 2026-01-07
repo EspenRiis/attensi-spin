@@ -1,22 +1,25 @@
 import { useState, useEffect } from 'react';
 import { useParams, useNavigate, useLocation } from 'react-router-dom';
-import { motion, AnimatePresence } from 'framer-motion';
+import { motion } from 'framer-motion';
 import { supabase } from '../../lib/supabase';
 import { useQuizGame } from '../../hooks/useQuizGame';
-import Leaderboard from './Leaderboard';
+import QuizRaceView from './QuizRaceView';
 import QuestionDisplay from './QuestionDisplay';
 import HostControls from './HostControls';
-import AnswerDistribution from './AnswerDistribution';
 import './QuizHostView.css';
+import './QuizRaceView.css';
 
-const QuizHostView = () => {
+/**
+ * QuizHostViewRacing - 3D racing visualization for quiz host
+ * Alternative to QuizHostView with integrated 3D racing
+ */
+const QuizHostViewRacing = () => {
   const { sessionId } = useParams();
   const navigate = useNavigate();
   const location = useLocation();
   const { autoReveal, quiz: quizFromState } = location.state || {};
 
   const [user, setUser] = useState(null);
-  const [session, setSession] = useState(null);
   const [quiz, setQuiz] = useState(quizFromState);
   const [questions, setQuestions] = useState([]);
   const [loading, setLoading] = useState(true);
@@ -34,7 +37,6 @@ const QuizHostView = () => {
   useEffect(() => {
     const loadSessionData = async () => {
       try {
-        // Get session
         const { data: sessionData, error: sessionError } = await supabase
           .from('quiz_sessions')
           .select(`
@@ -49,10 +51,8 @@ const QuizHostView = () => {
           .single();
 
         if (sessionError) throw sessionError;
-        setSession(sessionData);
         setQuiz(sessionData.quizzes);
 
-        // Load questions
         const { data: questionsData, error: questionsError } = await supabase
           .from('questions')
           .select('*')
@@ -82,13 +82,10 @@ const QuizHostView = () => {
     endQuiz,
   } = useQuizGame(sessionId, user?.id);
 
-  // Start quiz when component mounts and update session status
+  // Start quiz when ready
   useEffect(() => {
     const initializeQuiz = async () => {
       if (connected && user && !loading && questions.length > 0) {
-        console.log('Starting quiz with', questions.length, 'questions');
-
-        // Update session status to 'active'
         const { error } = await supabase
           .from('quiz_sessions')
           .update({
@@ -99,11 +96,8 @@ const QuizHostView = () => {
 
         if (error) {
           console.error('Error updating session status:', error);
-        } else {
-          console.log('Session status updated to active');
         }
 
-        // Start the WebSocket quiz
         startQuiz();
       }
     };
@@ -154,6 +148,10 @@ const QuizHostView = () => {
     }
   };
 
+  const handleBackTo2D = () => {
+    navigate(`/quiz-race/${sessionId}/host`, { state: { autoReveal, quiz } });
+  };
+
   if (loading || !connected) {
     return (
       <div className="quiz-host-view loading">
@@ -178,12 +176,8 @@ const QuizHostView = () => {
           initial={{ opacity: 0, scale: 0.9 }}
           animate={{ opacity: 1, scale: 1 }}
         >
-          <h1 className="completion-title">🏆 Quiz Complete!</h1>
+          <h1 className="completion-title">🏆 Race Complete!</h1>
           <h2 className="completion-subtitle">{quiz?.name}</h2>
-
-          <div className="final-leaderboard">
-            <Leaderboard leaderboard={gameState.leaderboard} />
-          </div>
 
           <div className="completion-actions">
             <button
@@ -204,120 +198,63 @@ const QuizHostView = () => {
     );
   }
 
-  const handleSwitch3D = () => {
-    navigate(`/quiz-race/${sessionId}/host-racing`, { state: { autoReveal, quiz } });
-  };
-
   return (
-    <div className="quiz-host-view">
-      {/* Top Bar */}
-      <div className="host-header">
-        <div className="quiz-info">
-          <h2>{quiz?.name}</h2>
-          <span className="status-badge">
-            {gameState.status === 'in_progress' ? '🎮 Live' : '⏸️ Waiting'}
-          </span>
-        </div>
-        <button
-          className="view-switch-btn"
-          onClick={handleSwitch3D}
-          title="Switch to 3D Racing View"
-        >
-          🏎️ 3D View
-        </button>
-      </div>
+    <div className="quiz-host-view quiz-host-racing">
+      {/* 3D Racing Background */}
+      <QuizRaceView
+        sessionId={sessionId}
+        gameState={gameState}
+        players={gameState.leaderboard || []}
+      />
 
-      <div className="host-content">
-        {/* Left: Leaderboard (30%) */}
-        <div className="leaderboard-section">
-          <Leaderboard
-            leaderboard={gameState.leaderboard}
-            highlightChanges={answerRevealed}
+      {/* Overlay UI */}
+      <div className="racing-overlay-ui">
+        {/* Top Bar */}
+        <div className="racing-header">
+          <div className="quiz-info-racing">
+            <h2>{quiz?.name}</h2>
+            <span className="status-badge-racing">
+              🏎️ 3D Racing View
+            </span>
+          </div>
+
+          <button
+            className="view-switch-btn"
+            onClick={handleBackTo2D}
+            title="Switch to 2D View"
+          >
+            📊 2D View
+          </button>
+        </div>
+
+        {/* Question Display (Semi-transparent overlay) */}
+        {gameState.currentQuestion && showQuestion && (
+          <div className="racing-question-overlay">
+            <QuestionDisplay
+              question={gameState.currentQuestion}
+              currentQuestionIndex={gameState.currentQuestionIndex}
+              totalQuestions={gameState.totalQuestions}
+              timeLimit={gameState.currentQuestion.time_limit}
+              onTimeExpired={handleTimeExpired}
+              showAnswers={showQuestion}
+            />
+          </div>
+        )}
+
+        {/* Host Controls (Bottom) */}
+        <div className="racing-controls-overlay">
+          <HostControls
+            onRevealAnswer={handleRevealAnswer}
+            onNextQuestion={handleNextQuestion}
+            onExitToLobby={handleExitToLobby}
+            showReveal={!answerRevealed}
+            showNext={answerRevealed}
+            answerRevealed={answerRevealed}
           />
-        </div>
-
-        {/* Right: Question & Controls (70%) */}
-        <div className="gameplay-section">
-          {gameState.currentQuestion ? (
-            <>
-              {/* Question Display */}
-              <div className="question-area">
-                <AnimatePresence mode="wait">
-                  {showQuestion && (
-                    <motion.div
-                      key={gameState.currentQuestion.id}
-                      initial={{ opacity: 0 }}
-                      animate={{ opacity: 1 }}
-                      exit={{ opacity: 0 }}
-                    >
-                      <QuestionDisplay
-                        question={gameState.currentQuestion}
-                        currentQuestionIndex={gameState.currentQuestionIndex}
-                        totalQuestions={gameState.totalQuestions}
-                        timeLimit={gameState.currentQuestion.time_limit}
-                        onTimeExpired={handleTimeExpired}
-                        showAnswers={showQuestion}
-                      />
-                    </motion.div>
-                  )}
-
-                  {!showQuestion && (
-                    <motion.div
-                      className="question-transition"
-                      initial={{ opacity: 0, scale: 0.9 }}
-                      animate={{ opacity: 1, scale: 1 }}
-                      exit={{ opacity: 0 }}
-                    >
-                      <h2 className="transition-text">
-                        Next Question Coming Up...
-                      </h2>
-                      <div className="transition-countdown">3</div>
-                    </motion.div>
-                  )}
-                </AnimatePresence>
-              </div>
-
-              {/* Answer Distribution (when revealed) */}
-              <AnimatePresence>
-                {answerRevealed && gameState.results && (
-                  <motion.div
-                    initial={{ opacity: 0, y: 20 }}
-                    animate={{ opacity: 1, y: 0 }}
-                    exit={{ opacity: 0, y: -20 }}
-                  >
-                    <AnswerDistribution
-                      question={gameState.currentQuestion}
-                      results={gameState.results.results}
-                      correctAnswer={gameState.results.correctAnswer}
-                    />
-                  </motion.div>
-                )}
-              </AnimatePresence>
-
-              {/* Host Controls */}
-              <HostControls
-                onRevealAnswer={handleRevealAnswer}
-                onNextQuestion={handleNextQuestion}
-                onExitToLobby={handleExitToLobby}
-                showReveal={!answerRevealed}
-                showNext={answerRevealed}
-                answerRevealed={answerRevealed}
-              />
-            </>
-          ) : (
-            <div className="waiting-for-question">
-              <motion.div
-                animate={{ scale: [1, 1.1, 1] }}
-                transition={{ duration: 2, repeat: Infinity }}
-              >
-                <h2>Preparing first question...</h2>
-              </motion.div>
-            </div>
-          )}
         </div>
       </div>
     </div>
   );
 };
 
-export default QuizHostView;
+export default QuizHostViewRacing;

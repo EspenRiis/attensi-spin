@@ -84,15 +84,20 @@ function QuizEditorPage() {
 
   const addQuestion = async () => {
     try {
+      // Get the highest order_index for this quiz to avoid duplicates
+      const maxOrderIndex = questions.length > 0
+        ? Math.max(...questions.map(q => q.order_index))
+        : -1;
+
       const newQuestion = {
         quiz_id: quizId,
         question_type: 'true_false',
         text: 'New question',
         time_limit: 20,
-        correct_answer: ['true'],  // Array for multiple correct answers
+        correct_answer: ['0'],  // Array with index 0 (True) as default
         options: ['True', 'False'],  // Array of options as per schema
         randomize_options: true,  // Randomize by default
-        order_index: questions.length
+        order_index: maxOrderIndex + 1
       }
 
       const { data, error } = await supabase
@@ -294,7 +299,7 @@ function QuestionEditor({ question, questionNumber, onUpdate, onDelete }) {
     const updates = { question_type: newType }
     if (newType === 'true_false') {
       updates.options = ['True', 'False']
-      updates.correct_answer = ['true']
+      updates.correct_answer = ['0']  // Index 0 = True
     } else {
       updates.options = ['Choice 1', 'Choice 2', 'Choice 3', 'Choice 4']
       updates.correct_answer = ['0']  // Array with first choice selected
@@ -429,15 +434,15 @@ function QuestionEditor({ question, questionNumber, onUpdate, onDelete }) {
           <div className="true-false-options">
             <button
               type="button"
-              className={`tf-option ${(Array.isArray(localQuestion.correct_answer) ? localQuestion.correct_answer : [localQuestion.correct_answer]).includes('true') ? 'selected' : ''}`}
-              onClick={() => toggleCorrectAnswer('true')}
+              className={`tf-option ${(Array.isArray(localQuestion.correct_answer) ? localQuestion.correct_answer : [localQuestion.correct_answer]).includes('0') ? 'selected' : ''}`}
+              onClick={() => toggleCorrectAnswer('0')}
             >
               ✓ True
             </button>
             <button
               type="button"
-              className={`tf-option ${(Array.isArray(localQuestion.correct_answer) ? localQuestion.correct_answer : [localQuestion.correct_answer]).includes('false') ? 'selected' : ''}`}
-              onClick={() => toggleCorrectAnswer('false')}
+              className={`tf-option ${(Array.isArray(localQuestion.correct_answer) ? localQuestion.correct_answer : [localQuestion.correct_answer]).includes('1') ? 'selected' : ''}`}
+              onClick={() => toggleCorrectAnswer('1')}
             >
               ✗ False
             </button>
