@@ -13,7 +13,8 @@ import {
   Globe,
   DollarSign,
   ArrowRight,
-  CheckCircle2
+  CheckCircle2,
+  BarChart3
 } from 'lucide-react'
 
 const LandingPage = () => {
@@ -49,7 +50,7 @@ const LandingPage = () => {
               </span>
             </h1>
             <p className="text-xl md:text-2xl text-gray-600 max-w-3xl mx-auto">
-              Spin wheels. Form teams. Run quizzes.
+              Spin wheels. Form teams. Run quizzes. Gather opinions.
             </p>
             <p className="text-lg text-gray-500 max-w-2xl mx-auto">
               Get everyone participating in meetings, classes, and workshops. Simple tools built for interaction.
@@ -78,7 +79,7 @@ const LandingPage = () => {
           whileInView="animate"
           viewport={{ once: true, margin: "-100px" }}
           variants={stagger}
-          className="grid md:grid-cols-3 gap-8"
+          className="grid md:grid-cols-2 lg:grid-cols-4 gap-8"
         >
           {/* Name Roulette */}
           <motion.div variants={fadeInUp}>
@@ -150,6 +151,32 @@ const LandingPage = () => {
                 </CardDescription>
                 <Button variant="violet" className="w-full flex-nowrap mt-auto" size="lg" disabled>
                   Coming soon
+                </Button>
+              </CardContent>
+            </Card>
+          </motion.div>
+
+          {/* Live Poll */}
+          <motion.div variants={fadeInUp}>
+            <Card className="h-full hover:shadow-xl transition-all duration-300 border-blue-200 hover:border-blue-400 group flex flex-col">
+              <CardHeader className="space-y-4">
+                <div className="w-16 h-16 rounded-2xl bg-blue-100 flex items-center justify-center group-hover:bg-blue-500 transition-colors">
+                  <BarChart3 className="h-8 w-8 text-blue-500 group-hover:text-white transition-colors" />
+                </div>
+                <div>
+                  <Badge variant="default" className="mb-3 bg-blue-100 text-blue-700 hover:bg-blue-200">Live Poll</Badge>
+                  <CardTitle className="text-2xl">Gather opinions in real-time</CardTitle>
+                </div>
+              </CardHeader>
+              <CardContent className="space-y-4 flex-grow flex flex-col">
+                <CardDescription className="text-base flex-grow">
+                  Instant polling with live distribution curves - see responses as they come in
+                </CardDescription>
+                <Button className="w-full flex-nowrap mt-auto bg-blue-500 hover:bg-blue-600" size="lg" asChild>
+                  <Link to="/live-poll" className="flex items-center justify-center gap-2 no-underline">
+                    Start polling
+                    <ArrowRight className="h-4 w-4 flex-shrink-0" />
+                  </Link>
                 </Button>
               </CardContent>
             </Card>
@@ -352,7 +379,7 @@ const LandingPage = () => {
           <p className="text-xl text-gray-600">
             Try any of our free tools now
           </p>
-          <div className="flex flex-col sm:flex-row gap-4 justify-center items-stretch sm:items-center">
+          <div className="flex flex-col sm:flex-row gap-4 justify-center items-stretch sm:items-center flex-wrap">
             <Button variant="coral" size="lg" className="whitespace-nowrap min-w-[160px]" asChild>
               <Link to="/nameroulette">Name Roulette</Link>
             </Button>
@@ -361,6 +388,9 @@ const LandingPage = () => {
             </Button>
             <Button variant="violet" size="lg" className="whitespace-nowrap min-w-[160px]" asChild>
               <Link to="/quizrace">Quiz Race</Link>
+            </Button>
+            <Button size="lg" className="whitespace-nowrap min-w-[160px] bg-blue-500 hover:bg-blue-600" asChild>
+              <Link to="/live-poll">Live Poll</Link>
             </Button>
           </div>
         </motion.div>
