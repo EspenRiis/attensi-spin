@@ -63,6 +63,9 @@ const Header = () => {
               <button onClick={() => navigate('/squadscramble')} className="nav-link">
                 Squad Scramble
               </button>
+              <button onClick={() => navigate('/live-poll')} className="nav-link">
+                Live Poll
+              </button>
               <div className="user-menu">
                 <span className="user-email">{user.email}</span>
                 <button onClick={handleSignOut} className="btn-signout">
@@ -77,6 +80,9 @@ const Header = () => {
               </button>
               <button onClick={() => navigate('/squadscramble')} className="nav-link">
                 Squad Scramble
+              </button>
+              <button onClick={() => navigate('/live-poll')} className="nav-link">
+                Live Poll
               </button>
             </>
           )}

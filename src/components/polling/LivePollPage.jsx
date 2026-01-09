@@ -182,7 +182,7 @@ const LivePollPage = () => {
   };
 
   const joinUrl = sessionId
-    ? `${window.location.origin}/polling/${sessionId}/join`
+    ? `${window.location.origin}/polling/${sessionId}/respond`
     : '';
 
   if (!sessionId) {
