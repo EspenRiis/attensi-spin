@@ -3,6 +3,7 @@ import { motion } from 'framer-motion';
 import { QRCodeSVG } from 'qrcode.react';
 import { supabase } from '../../lib/supabase';
 import DistributionCurve from './components/DistributionCurve';
+import SEO from '../SEO';
 import './styles/LivePollPage.css';
 
 const LivePollPage = () => {
@@ -202,6 +203,12 @@ const LivePollPage = () => {
 
   return (
     <div className="live-poll-page">
+      <SEO
+        title="Live Poll - Real-Time Opinion Gathering | Sessionkit"
+        description="Instant live polling with smooth distribution curves. See responses in real-time as participants vote. Perfect for gauging opinions, checking understanding, and energizing meetings. Free and anonymous."
+        keywords="live poll, real-time poll, instant poll, opinion poll, live voting, distribution curve, anonymous poll, classroom poll, meeting poll, workshop poll"
+        url="https://sessionkit.io/live-poll"
+      />
       {/* Left Sidebar - Settings & Controls */}
       <div className="left-sidebar">
         <div className="sidebar-section">

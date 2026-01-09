@@ -2,6 +2,7 @@ import { useState, useEffect } from 'react';
 import { motion, AnimatePresence } from 'framer-motion';
 import { useSearchParams } from 'react-router-dom';
 import { supabase } from '../../lib/supabase';
+import SEO from '../SEO';
 import {
   generateTeamsByCount,
   generateTeamsBySize,
@@ -351,6 +352,12 @@ const loadEventData = async (evtId, isInitialLoad = false) => {
 
   return (
     <div className="squad-scramble-page">
+      <SEO
+        title="Squad Scramble - Random Team Generator | Sessionkit"
+        description="Create balanced teams instantly. Random team generator for group activities, breakout sessions, and projects. Fair, fast, and free. No signup required."
+        keywords="team generator, random teams, squad scramble, group generator, team maker, breakout groups, random group generator, balanced teams, classroom groups"
+        url="https://sessionkit.io/squadscramble"
+      />
       {/* Session Restore Modal */}
       <AnimatePresence>
         {showSessionRestoreModal && (

@@ -2,6 +2,7 @@ import { Link } from 'react-router-dom'
 import { motion } from 'framer-motion'
 import { Button } from './ui/button'
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from './ui/card'
+import SEO from './SEO'
 import {
   ArrowLeft,
   Lightbulb,
@@ -32,6 +33,12 @@ const WorkshopTipsPage = () => {
 
   return (
     <div className="bg-gradient-to-b from-cream-50 to-white min-h-screen">
+      <SEO
+        title="Workshop Hosting Tips - Sessionkit"
+        description="Practical advice for running engaging workshops, meetings, and training sessions. Learn how to use interactive tools effectively, manage energy, and avoid common facilitation pitfalls."
+        keywords="workshop tips, facilitation tips, meeting facilitation, classroom management, interactive teaching, engagement strategies, workshop hosting, training facilitation"
+        url="https://sessionkit.io/workshop-tips"
+      />
       {/* Header */}
       <section className="px-4 py-8 max-w-7xl mx-auto">
         <Link to="/" className="inline-flex items-center gap-2 text-gray-600 hover:text-gray-900 transition-colors">

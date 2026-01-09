@@ -8,6 +8,7 @@ import QRCodePanel from './QRCodePanel';
 import SessionRestoreModal from './shared/SessionRestoreModal';
 import EventDataModal from './shared/EventDataModal';
 import WinnerModal from './WinnerModal';
+import SEO from './SEO';
 import {
   addName,
   loadNames,
@@ -514,6 +515,12 @@ const WheelPage = () => {
 
   return (
     <div className="wheel-page">
+      <SEO
+        title="Name Roulette - Random Name Picker | Sessionkit"
+        description="Spin the wheel for fair, dramatic name selection. Perfect for cold calls, choosing volunteers, and random picks in meetings, classes, and workshops. Free to use, no signup required."
+        keywords="name roulette, random name picker, name picker wheel, spin the wheel, random selector, fair selection tool, classroom picker, meeting tool, volunteer picker"
+        url="https://sessionkit.io/nameroulette"
+      />
       <AnimatePresence>
         {showWelcomeModal && (
           <SessionRestoreModal

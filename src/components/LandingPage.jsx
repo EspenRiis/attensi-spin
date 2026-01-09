@@ -3,6 +3,7 @@ import { motion } from 'framer-motion'
 import { Button } from './ui/button'
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from './ui/card'
 import { Badge } from './ui/badge'
+import SEO from './SEO'
 import {
   Sparkles,
   Users,
@@ -34,6 +35,7 @@ const LandingPage = () => {
 
   return (
     <div className="bg-gradient-to-b from-cream-50 to-white min-h-screen">
+      <SEO />
       {/* Hero Section */}
       <section className="px-4 py-16 md:py-24 lg:py-32 max-w-7xl mx-auto">
         <motion.div
