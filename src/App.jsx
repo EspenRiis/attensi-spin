@@ -28,6 +28,7 @@ import PollHostView from './components/polling/PollHostView'
 import PollJoinPage from './components/polling/PollJoinPage'
 import PollRespondView from './components/polling/PollRespondView'
 import LivePollPage from './components/polling/LivePollPage'
+import WorkshopTipsPage from './components/WorkshopTipsPage'
 
 function App() {
   const location = useLocation()
@@ -35,7 +36,8 @@ function App() {
 
   // Apply dark theme to non-landing pages
   useEffect(() => {
-    if (location.pathname === '/') {
+    const lightThemePages = ['/', '/workshop-tips']
+    if (lightThemePages.includes(location.pathname)) {
       document.body.classList.remove('dark-theme')
     } else {
       document.body.classList.add('dark-theme')
@@ -48,6 +50,7 @@ function App() {
       <main style={{ flex: 1, display: 'flex', flexDirection: 'column' }}>
         <Routes>
         <Route path="/" element={<LandingPage />} />
+        <Route path="/workshop-tips" element={<WorkshopTipsPage />} />
         <Route path="/nameroulette" element={<WheelPage />} />
         <Route path="/squadscramble" element={<SquadScramblePage />} />
         <Route path="/add-name" element={<AddNamePage />} />
