@@ -1,0 +1,345 @@
+.live-poll-page {
+  min-height: 100vh;
+  background: linear-gradient(135deg, #0A1628 0%, #1a2332 100%);
+  display: grid;
+  grid-template-columns: 350px 1fr 400px;
+  gap: 1.5rem;
+  padding: 2rem;
+  position: relative;
+}
+
+.live-poll-page.loading {
+  display: flex;
+  justify-content: center;
+  align-items: center;
+  flex-direction: column;
+  text-align: center;
+}
+
+.loading-spinner {
+  font-size: 4rem;
+  margin-bottom: 1rem;
+  color: #FF6B9D;
+}
+
+.live-poll-page.loading p {
+  color: rgba(255, 255, 255, 0.7);
+  font-size: 1.125rem;
+}
+
+/* Left Sidebar */
+.left-sidebar {
+  background: rgba(10, 22, 40, 0.8);
+  backdrop-filter: blur(10px);
+  border-radius: 20px;
+  border: 1px solid rgba(255, 107, 157, 0.3);
+  padding: 1.5rem;
+  display: flex;
+  flex-direction: column;
+  gap: 1.5rem;
+  height: fit-content;
+}
+
+.sidebar-section {
+  display: flex;
+  flex-direction: column;
+  gap: 0.75rem;
+}
+
+.sidebar-section h3 {
+  color: #FF6B9D;
+  font-size: 1.5rem;
+  margin: 0;
+  font-weight: 700;
+}
+
+.sidebar-section label {
+  color: rgba(255, 255, 255, 0.7);
+  font-size: 0.875rem;
+  font-weight: 600;
+}
+
+.participant-badge {
+  background: linear-gradient(135deg, #FF6B9D 0%, #C06C84 100%);
+  color: #ffffff;
+  padding: 0.75rem 1rem;
+  border-radius: 10px;
+  text-align: center;
+  font-size: 1.125rem;
+  font-weight: 700;
+}
+
+.question-input,
+.label-input {
+  background: rgba(0, 0, 0, 0.3);
+  border: 1px solid rgba(255, 107, 157, 0.3);
+  border-radius: 10px;
+  padding: 0.75rem;
+  color: #ffffff;
+  font-size: 0.875rem;
+  resize: vertical;
+  font-family: inherit;
+}
+
+.question-input:focus,
+.label-input:focus {
+  outline: none;
+  border-color: #FF6B9D;
+  box-shadow: 0 0 0 3px rgba(255, 107, 157, 0.1);
+}
+
+.sidebar-section.controls {
+  display: flex;
+  flex-direction: column;
+  gap: 0.75rem;
+  padding-top: 1rem;
+  border-top: 1px solid rgba(255, 107, 157, 0.2);
+}
+
+.btn-control {
+  padding: 0.875rem 1rem;
+  border: none;
+  border-radius: 10px;
+  font-size: 0.875rem;
+  font-weight: 600;
+  cursor: pointer;
+  transition: all 0.2s ease;
+}
+
+.btn-pause {
+  background: rgba(255, 193, 7, 0.2);
+  color: #FFC107;
+  border: 1px solid rgba(255, 193, 7, 0.4);
+}
+
+.btn-pause:hover {
+  background: rgba(255, 193, 7, 0.3);
+}
+
+.btn-resume {
+  background: rgba(76, 175, 80, 0.2);
+  color: #4CAF50;
+  border: 1px solid rgba(76, 175, 80, 0.4);
+}
+
+.btn-resume:hover {
+  background: rgba(76, 175, 80, 0.3);
+}
+
+.btn-reset {
+  background: rgba(244, 67, 54, 0.2);
+  color: #F44336;
+  border: 1px solid rgba(244, 67, 54, 0.4);
+}
+
+.btn-reset:hover {
+  background: rgba(244, 67, 54, 0.3);
+}
+
+/* Center Content */
+.center-content {
+  display: flex;
+  flex-direction: column;
+  gap: 1.5rem;
+}
+
+.poll-header {
+  background: rgba(10, 22, 40, 0.8);
+  backdrop-filter: blur(10px);
+  border-radius: 20px;
+  border: 1px solid rgba(255, 107, 157, 0.3);
+  padding: 2rem;
+  text-align: center;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 1rem;
+}
+
+.poll-header h1 {
+  color: #ffffff;
+  font-size: 2rem;
+  margin: 0;
+  font-weight: 700;
+  line-height: 1.3;
+}
+
+.status-badge {
+  padding: 0.5rem 1rem;
+  border-radius: 8px;
+  font-size: 0.875rem;
+  font-weight: 600;
+}
+
+.status-badge.paused {
+  background: rgba(255, 193, 7, 0.2);
+  color: #FFC107;
+  border: 1px solid rgba(255, 193, 7, 0.4);
+}
+
+.distribution-container {
+  background: rgba(10, 22, 40, 0.8);
+  backdrop-filter: blur(10px);
+  border-radius: 20px;
+  border: 1px solid rgba(255, 107, 157, 0.3);
+  padding: 2rem;
+  flex: 1;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  min-height: 500px;
+}
+
+/* Right Sidebar - QR Code */
+.right-sidebar {
+  display: flex;
+  flex-direction: column;
+}
+
+.qr-panel {
+  background: rgba(10, 22, 40, 0.8);
+  backdrop-filter: blur(10px);
+  border-radius: 20px;
+  border: 1px solid rgba(255, 107, 157, 0.3);
+  padding: 1.5rem;
+  height: fit-content;
+  transition: all 0.3s ease;
+}
+
+.qr-panel.collapsed {
+  padding: 1rem;
+}
+
+.qr-header {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  margin-bottom: 1.5rem;
+}
+
+.qr-panel.collapsed .qr-header {
+  margin-bottom: 0;
+}
+
+.qr-header h3 {
+  color: #FF6B9D;
+  font-size: 1.25rem;
+  margin: 0;
+  font-weight: 700;
+}
+
+.qr-toggle {
+  background: rgba(255, 107, 157, 0.2);
+  border: 1px solid rgba(255, 107, 157, 0.3);
+  color: #FF6B9D;
+  padding: 0.25rem 0.75rem;
+  border-radius: 6px;
+  cursor: pointer;
+  font-size: 1rem;
+  transition: all 0.2s ease;
+}
+
+.qr-toggle:hover {
+  background: rgba(255, 107, 157, 0.3);
+}
+
+.qr-content {
+  display: flex;
+  flex-direction: column;
+  gap: 1.5rem;
+  align-items: center;
+}
+
+.qr-code-box {
+  background: #FFFFFF;
+  padding: 1rem;
+  border-radius: 12px;
+  display: flex;
+  justify-content: center;
+  align-items: center;
+}
+
+.join-info {
+  text-align: center;
+}
+
+.join-label {
+  color: rgba(255, 255, 255, 0.7);
+  font-size: 0.875rem;
+}
+
+.share-link {
+  width: 100%;
+}
+
+.link-input {
+  width: 100%;
+  background: rgba(0, 0, 0, 0.3);
+  border: 1px solid rgba(255, 107, 157, 0.3);
+  border-radius: 8px;
+  padding: 0.75rem;
+  color: rgba(255, 255, 255, 0.8);
+  font-size: 0.75rem;
+  font-family: monospace;
+  text-align: center;
+}
+
+.link-input:focus {
+  outline: none;
+  border-color: #FF6B9D;
+}
+
+/* Responsive Design */
+@media (max-width: 1400px) {
+  .live-poll-page {
+    grid-template-columns: 300px 1fr 350px;
+  }
+}
+
+@media (max-width: 1200px) {
+  .live-poll-page {
+    grid-template-columns: 1fr;
+    grid-template-rows: auto 1fr auto;
+  }
+
+  .left-sidebar {
+    order: 1;
+  }
+
+  .center-content {
+    order: 2;
+  }
+
+  .right-sidebar {
+    order: 3;
+  }
+
+  .distribution-container {
+    min-height: 400px;
+  }
+}
+
+@media (max-width: 768px) {
+  .live-poll-page {
+    padding: 1rem;
+    gap: 1rem;
+  }
+
+  .poll-header h1 {
+    font-size: 1.5rem;
+  }
+
+  .distribution-container {
+    min-height: 300px;
+    padding: 1rem;
+  }
+
+  .left-sidebar,
+  .qr-panel {
+    padding: 1rem;
+  }
+
+  .sidebar-section h3 {
+    font-size: 1.25rem;
+  }
+}

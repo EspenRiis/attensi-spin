@@ -1,0 +1,163 @@
+.distribution-curve {
+  width: 100%;
+  height: 100%;
+  display: flex;
+  flex-direction: column;
+}
+
+.curve-header {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  margin-bottom: 1.5rem;
+}
+
+.curve-header h3 {
+  color: #FF6B9D;
+  font-size: 1.5rem;
+  margin: 0;
+  font-weight: 700;
+}
+
+.response-count {
+  background: rgba(255, 107, 157, 0.2);
+  color: #FF6B9D;
+  padding: 0.5rem 1rem;
+  border-radius: 20px;
+  font-weight: 600;
+  font-size: 0.875rem;
+}
+
+.curve-container {
+  flex: 1;
+  background: rgba(10, 22, 40, 0.6);
+  border-radius: 16px;
+  border: 1px solid rgba(255, 107, 157, 0.2);
+  padding: 2rem;
+  display: flex;
+  flex-direction: column;
+  justify-content: center;
+  min-height: 400px;
+}
+
+.no-data {
+  text-align: center;
+  color: rgba(255, 255, 255, 0.5);
+  padding: 4rem 2rem;
+}
+
+.no-data-icon {
+  font-size: 4rem;
+  display: block;
+  margin-bottom: 1rem;
+  opacity: 0.3;
+}
+
+.no-data p {
+  margin: 0.5rem 0;
+}
+
+.no-data-hint {
+  font-size: 0.875rem;
+  opacity: 0.7;
+}
+
+.curve-wrapper {
+  width: 100%;
+}
+
+.curve-svg {
+  width: 100%;
+  height: 300px;
+  display: block;
+  margin-bottom: 0.5rem;
+}
+
+.grid-lines {
+  opacity: 0.3;
+}
+
+.mean-marker {
+  opacity: 0.8;
+}
+
+.axis-labels {
+  display: flex;
+  justify-content: space-between;
+  padding: 0 0.5rem;
+  margin-top: 0.75rem;
+}
+
+.axis-label {
+  color: rgba(255, 255, 255, 0.7);
+  font-size: 0.875rem;
+  font-weight: 600;
+}
+
+.axis-label-min {
+  text-align: left;
+}
+
+.axis-label-center {
+  text-align: center;
+  flex: 1;
+}
+
+.axis-label-max {
+  text-align: right;
+}
+
+/* Statistics Panel */
+.stats-panel {
+  display: grid;
+  grid-template-columns: repeat(4, 1fr);
+  gap: 1rem;
+  margin-top: 1.5rem;
+  padding: 1.5rem;
+  background: rgba(255, 107, 157, 0.05);
+  border-radius: 12px;
+  border: 1px solid rgba(255, 107, 157, 0.15);
+}
+
+.stat-item {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 0.5rem;
+}
+
+.stat-label {
+  color: rgba(255, 255, 255, 0.6);
+  font-size: 0.75rem;
+  text-transform: uppercase;
+  letter-spacing: 0.5px;
+  font-weight: 600;
+}
+
+.stat-value {
+  color: #FF6B9D;
+  font-size: 1.5rem;
+  font-weight: 700;
+}
+
+/* Responsive */
+@media (max-width: 768px) {
+  .curve-header {
+    flex-direction: column;
+    align-items: flex-start;
+    gap: 1rem;
+  }
+
+  .stats-panel {
+    grid-template-columns: repeat(2, 1fr);
+  }
+
+  .curve-svg {
+    height: 200px;
+  }
+
+  .curve-container {
+    min-height: 300px;
+    padding: 1rem;
+  }
+}

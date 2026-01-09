@@ -1,0 +1,263 @@
+.slider-input {
+  width: 100%;
+  padding: 2rem 1rem;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 1.5rem;
+  user-select: none;
+}
+
+.slider-input.disabled {
+  opacity: 0.5;
+  pointer-events: none;
+}
+
+/* Value Display */
+.slider-value-display {
+  background: linear-gradient(135deg, #FF6B9D 0%, #C06C84 100%);
+  color: #ffffff;
+  width: 120px;
+  height: 120px;
+  border-radius: 50%;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  box-shadow: 0 8px 30px rgba(255, 107, 157, 0.4);
+  border: 4px solid rgba(255, 255, 255, 0.2);
+}
+
+.slider-input.dragging .slider-value-display {
+  box-shadow: 0 12px 40px rgba(255, 107, 157, 0.6);
+}
+
+.value-number {
+  font-size: 3rem;
+  font-weight: 700;
+  letter-spacing: -2px;
+}
+
+/* Labels */
+.slider-labels {
+  width: 100%;
+  display: flex;
+  justify-content: space-between;
+  padding: 0 1rem;
+  color: rgba(255, 255, 255, 0.9);
+  font-size: 0.875rem;
+  font-weight: 600;
+}
+
+.label-min,
+.label-max {
+  max-width: 40%;
+  text-align: center;
+}
+
+.label-min {
+  text-align: left;
+}
+
+.label-max {
+  text-align: right;
+}
+
+/* Slider Container */
+.slider-container {
+  position: relative;
+  width: 100%;
+  height: 60px;
+  display: flex;
+  align-items: center;
+}
+
+/* Progress Track */
+.slider-progress {
+  position: absolute;
+  top: 50%;
+  left: 0;
+  height: 8px;
+  transform: translateY(-50%);
+  border-radius: 4px 0 0 4px;
+  transition: width 0.1s ease;
+  pointer-events: none;
+  z-index: 1;
+}
+
+/* Input Element */
+.slider-input-element {
+  -webkit-appearance: none;
+  appearance: none;
+  width: 100%;
+  height: 8px;
+  background: rgba(255, 255, 255, 0.1);
+  border-radius: 4px;
+  outline: none;
+  position: relative;
+  z-index: 2;
+  cursor: pointer;
+}
+
+/* Remove default styles */
+.slider-input-element::-webkit-slider-thumb {
+  -webkit-appearance: none;
+  appearance: none;
+}
+
+.slider-input-element::-moz-range-thumb {
+  border: none;
+}
+
+/* Webkit Thumb */
+.slider-input-element::-webkit-slider-thumb {
+  -webkit-appearance: none;
+  appearance: none;
+  width: 40px;
+  height: 40px;
+  border-radius: 50%;
+  background: #ffffff;
+  cursor: grab;
+  box-shadow: 0 4px 15px rgba(0, 0, 0, 0.3);
+  border: 3px solid #FF6B9D;
+  transition: all 0.2s ease;
+}
+
+.slider-input-element:active::-webkit-slider-thumb {
+  cursor: grabbing;
+  transform: scale(1.15);
+  box-shadow: 0 6px 20px rgba(255, 107, 157, 0.6);
+}
+
+/* Firefox Thumb */
+.slider-input-element::-moz-range-thumb {
+  width: 40px;
+  height: 40px;
+  border-radius: 50%;
+  background: #ffffff;
+  cursor: grab;
+  box-shadow: 0 4px 15px rgba(0, 0, 0, 0.3);
+  border: 3px solid #FF6B9D;
+  transition: all 0.2s ease;
+}
+
+.slider-input-element:active::-moz-range-thumb {
+  cursor: grabbing;
+  transform: scale(1.15);
+  box-shadow: 0 6px 20px rgba(255, 107, 157, 0.6);
+}
+
+/* Disabled State */
+.slider-input.disabled .slider-input-element {
+  cursor: not-allowed;
+  opacity: 0.5;
+}
+
+.slider-input.disabled .slider-input-element::-webkit-slider-thumb {
+  cursor: not-allowed;
+}
+
+.slider-input.disabled .slider-input-element::-moz-range-thumb {
+  cursor: not-allowed;
+}
+
+/* Tick Marks */
+.slider-ticks {
+  position: absolute;
+  top: 50%;
+  left: 0;
+  right: 0;
+  transform: translateY(20px);
+  pointer-events: none;
+  z-index: 0;
+}
+
+.tick-mark {
+  position: absolute;
+  transform: translateX(-50%);
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 0.25rem;
+}
+
+.tick-line {
+  width: 2px;
+  height: 8px;
+  background: rgba(255, 255, 255, 0.3);
+  border-radius: 1px;
+}
+
+.tick-label {
+  color: rgba(255, 255, 255, 0.5);
+  font-size: 0.75rem;
+  font-weight: 500;
+}
+
+/* Disabled Message */
+.slider-disabled-message {
+  color: rgba(255, 255, 255, 0.6);
+  font-size: 0.875rem;
+  text-align: center;
+  font-style: italic;
+}
+
+/* Responsive Design */
+@media (max-width: 768px) {
+  .slider-input {
+    padding: 1.5rem 0.5rem;
+  }
+
+  .slider-value-display {
+    width: 100px;
+    height: 100px;
+  }
+
+  .value-number {
+    font-size: 2.5rem;
+  }
+
+  .slider-labels {
+    font-size: 0.8125rem;
+  }
+
+  .slider-container {
+    height: 50px;
+  }
+}
+
+/* Touch Optimization */
+@media (hover: none) and (pointer: coarse) {
+  /* Increase touch target size on mobile */
+  .slider-input-element::-webkit-slider-thumb {
+    width: 50px;
+    height: 50px;
+  }
+
+  .slider-input-element::-moz-range-thumb {
+    width: 50px;
+    height: 50px;
+  }
+
+  .slider-container {
+    height: 70px;
+  }
+}
+
+/* Accessibility - High Contrast Mode */
+@media (prefers-contrast: high) {
+  .slider-input-element {
+    background: #000000;
+  }
+
+  .slider-progress {
+    background: #FFFF00 !important;
+  }
+
+  .slider-input-element::-webkit-slider-thumb {
+    border-color: #FFFF00;
+  }
+
+  .slider-input-element::-moz-range-thumb {
+    border-color: #FFFF00;
+  }
+}

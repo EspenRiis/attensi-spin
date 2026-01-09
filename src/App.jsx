@@ -22,6 +22,12 @@ import QuizHostViewRacing from './components/quiz/QuizHostViewRacing'
 import QuizJoinPage from './components/quiz/QuizJoinPage'
 import QuizPlayerWaiting from './components/quiz/QuizPlayerWaiting'
 import QuizPlayerGame from './components/quiz/QuizPlayerGame'
+import PollListPage from './components/polling/PollListPage'
+import PollEditorPage from './components/polling/PollEditorPage'
+import PollHostView from './components/polling/PollHostView'
+import PollJoinPage from './components/polling/PollJoinPage'
+import PollRespondView from './components/polling/PollRespondView'
+import LivePollPage from './components/polling/LivePollPage'
 
 function App() {
   const location = useLocation()
@@ -118,6 +124,14 @@ function App() {
         <Route path="/quiz-race/:sessionId/join" element={<QuizJoinPage />} />
         <Route path="/quiz-race/:sessionId/play" element={<QuizPlayerWaiting />} />
         <Route path="/quiz-race/:sessionId/game" element={<QuizPlayerGame />} />
+
+        {/* Live Poll Routes */}
+        <Route path="/live-poll" element={<LivePollPage />} />
+        <Route path="/polling" element={<ProtectedRoute><PollListPage /></ProtectedRoute>} />
+        <Route path="/polling/builder/:pollId" element={<ProtectedRoute><PollEditorPage /></ProtectedRoute>} />
+        <Route path="/polling/:sessionId/host" element={<ProtectedRoute><PollHostView /></ProtectedRoute>} />
+        <Route path="/polling/:sessionId/join" element={<PollJoinPage />} />
+        <Route path="/polling/:sessionId/respond" element={<PollRespondView />} />
       </Routes>
       </main>
       {!hideFooter && <Footer />}
