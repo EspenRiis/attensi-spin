@@ -20,17 +20,44 @@ const PollRespondView = () => {
 
   const submitTimeoutRef = useRef(null);
 
-  // Load participant from localStorage
+  // Load or create participant
   useEffect(() => {
-    const storedParticipantId = localStorage.getItem(`poll_participant_id_${sessionId}`);
+    const initializeParticipant = async () => {
+      const storedParticipantId = localStorage.getItem(`poll_participant_id_${sessionId}`);
+      const storedDeviceToken = localStorage.getItem(`poll_device_${sessionId}`);
 
-    if (!storedParticipantId) {
-      setError('No participant ID found. Please join the poll first.');
-      setLoading(false);
-      return;
-    }
+      if (storedParticipantId && storedDeviceToken) {
+        // Participant already exists
+        setParticipantId(storedParticipantId);
+        return;
+      }
 
-    setParticipantId(storedParticipantId);
+      // Create new anonymous participant
+      try {
+        const { data: participant, error: participantError } = await supabase
+          .from('poll_participants')
+          .insert({
+            poll_session_id: sessionId,
+            username: null, // Anonymous
+          })
+          .select()
+          .single();
+
+        if (participantError) throw participantError;
+
+        // Store in localStorage
+        localStorage.setItem(`poll_participant_id_${sessionId}`, participant.id);
+        localStorage.setItem(`poll_device_${sessionId}`, participant.device_token);
+
+        setParticipantId(participant.id);
+      } catch (err) {
+        console.error('Error creating participant:', err);
+        setError('Failed to join poll. Please try again.');
+        setLoading(false);
+      }
+    };
+
+    initializeParticipant();
   }, [sessionId]);
 
   // Load session, poll, and current question
