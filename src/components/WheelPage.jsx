@@ -9,6 +9,7 @@ import SessionRestoreModal from './shared/SessionRestoreModal';
 import EventDataModal from './shared/EventDataModal';
 import WinnerModal from './WinnerModal';
 import SEO from './SEO';
+import ToolInfo from './shared/ToolInfo';
 import {
   addName,
   loadNames,
@@ -685,6 +686,102 @@ const WheelPage = () => {
           <QRCodePanel eventId={isEventMode ? currentEventId : null} />
         </div>
       </div>
+
+      {/* Tool Information Sections */}
+      <ToolInfo
+        color="coral"
+        sections={[
+          {
+            title: 'How to Use Name Roulette',
+            icon: '🎯',
+            columns: 1,
+            items: [
+              {
+                icon: '1️⃣',
+                title: 'Add Names',
+                description: 'Type names directly or scan the QR code to let participants add themselves. You can add as many names as you need.',
+              },
+              {
+                icon: '2️⃣',
+                title: 'Spin the Wheel',
+                description: 'Click the big "SPIN" button and watch the wheel spin with anticipation. The wheel uses true randomization for fair selection.',
+              },
+              {
+                icon: '3️⃣',
+                title: 'See the Winner',
+                description: 'The selected name appears with a celebration animation. Winners are automatically moved to the "Winners" list so they won\'t be picked again.',
+              },
+              {
+                icon: '4️⃣',
+                title: 'Spin Again',
+                description: 'Keep spinning for more selections. All your data is saved automatically, so you can pick up where you left off.',
+              },
+            ],
+          },
+          {
+            title: 'Why Use Name Roulette?',
+            icon: '✨',
+            items: [
+              {
+                icon: '⚡',
+                title: 'Save Time',
+                description: 'No more awkward pauses trying to pick someone. Just spin and go. Perfect for fast-paced sessions where every second counts.',
+              },
+              {
+                icon: '🎲',
+                title: 'Completely Fair',
+                description: 'True random selection means everyone has an equal chance. No bias, no favoritism - just mathematics ensuring fairness every time.',
+              },
+              {
+                icon: '🎉',
+                title: 'More Engaging',
+                description: 'The spinning animation creates anticipation and energy. Turn a simple name pick into a moment of excitement that keeps people alert.',
+              },
+              {
+                icon: '💾',
+                title: 'Automatic History',
+                description: 'Winners are tracked automatically and won\'t be picked twice. Your session data saves automatically, so you never lose progress.',
+              },
+            ],
+          },
+          {
+            title: 'Common Use Cases',
+            icon: '💡',
+            items: [
+              {
+                icon: '🎓',
+                title: 'Cold Calling in Class',
+                description: 'Call on students fairly without putting anyone on the spot. The wheel removes the pressure while keeping everyone engaged and ready to participate.',
+              },
+              {
+                icon: '🙋',
+                title: 'Choosing Volunteers',
+                description: 'When multiple people want to go first (or no one does), let the wheel decide. Takes the social pressure off you and makes the decision fun.',
+              },
+              {
+                icon: '🎤',
+                title: 'Presentation Order',
+                description: 'Determine who presents first, second, third. No more "can I go last?" negotiations - the wheel decides fairly and everyone accepts the result.',
+              },
+              {
+                icon: '🎯',
+                title: 'Demo Participants',
+                description: 'Need someone to demonstrate a technique or try something new? Spin the wheel to pick a willing (or not-so-willing) volunteer.',
+              },
+              {
+                icon: '👥',
+                title: 'Breaking Up Cliques',
+                description: 'Use random selection to ensure you\'re not always calling on the same eager participants. Give everyone a chance to shine.',
+              },
+              {
+                icon: '🏆',
+                title: 'Prize Drawings',
+                description: 'Running a raffle or giveaway? Name Roulette makes it transparent and exciting. Everyone sees the fair, random selection happen live.',
+              },
+            ],
+          },
+        ]}
+      />
     </div>
   );
 };

@@ -321,7 +321,7 @@ const loadEventData = async (evtId, isInitialLoad = false) => {
       // Save to database
       const saveResult = await saveTeamGeneration({
         eventId: isEventMode ? currentEventId : null,
-        sessionId: isEventMode ? null : getCurrentSessionId(),
+        sessionId: isEventMode ? null : getCurrentSessionId('scramble'),
         mode: result.mode,
         teamCount: result.mode === 'team_count' ? result.teamCount : null,
         teamSize: result.mode === 'team_size' ? result.teamSize : null,
